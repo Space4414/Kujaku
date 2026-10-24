@@ -113,8 +113,13 @@ jobs:
         fi
         GRADLE_STATUS=${GRADLE_STATUS:-0}
         if [ "$GRADLE_STATUS" -ne 0 ]; then
-          ERROR_SUMMARY=$(grep -E -A 5 '(^FAILURE:|^\* What went wrong:|Could not resolve|Could not find|Could not GET|HTTP 403|Execution failed for task|^e: |Unresolved reference)' gradle-build.log | tail -n 35 || true)
-          if [ -z "$ERROR_SUMMARY" ]; then ERROR_SUMMARY=$(tail -n 35 gradle-build.log); fi
+          ERROR_SUMMARY=$(
+            {
+              grep -E -A 8 '(^FAILURE:|^\* What went wrong:|Could not resolve|Could not find|Could not GET|HTTP 403|Execution failed for task|^e: |Unresolved reference|OutOfMemoryError)' gradle-build.log | head -n 60 || true
+              echo '---- tail of Gradle output ----'
+              tail -n 45 gradle-build.log
+            }
+          )
           printf '%s\n' "$ERROR_SUMMARY" > gradle-build-failure.log
           {
             echo "## Gradle build failure"

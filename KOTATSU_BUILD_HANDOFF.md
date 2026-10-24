@@ -2,40 +2,41 @@
 
 Repo: [Space4414/Kujaku](https://github.com/Space4414/Kujaku)
 Branch: `feature/kotatsu-parsers-redo` (open PR #2 into `main`).
-Purpose: get the Kotatsu parsers integration to a CI-built APK so it can be installed and tested.
+Goal: produce a CI-built APK to install and test the Kotatsu parsers integration.
 
 ## Verified timeline and investigation log
 
-1. Located the repository through the connected GitHub account. The PR branch was `feature/kotatsu-parsers-redo`; PR #2 is open and targets `main`.
-2. Confirmed the JitPack credential is present in repository Actions secrets by name only (`JITPACK_AUTH_TOKEN`). Its value was not read, printed, or copied.
-3. Reviewed the earlier CI history: build attempts 2–4 failed before APK upload. The user-reported failure in attempt 3 was HTTP 403 for `RepoDevil/AnimatedBottomBar:7fcb9af`.
-4. Reviewed commits `9ed1d1b` (pass JitPack token to Gradle), `df20c88` (use public upstream AnimatedBottomBar), and `432f487` (move AnimatedBottomBar to Maven Central).
-5. Verified the current dependency is `nl.joery.animatedbottombar:library:1.1.0`; its Maven Central POM is available and identifies the Droppers AnimatedBottomBar project. This confirms the coordinate resolves, not that the app compiles against it.
-6. Inspected the latest Actions run for `432f487` (run #5, ID `40054885820`). Checkout and setup succeeded; `Build with Gradle` failed. APK artifact upload was skipped. The missing prior `last-sha` artifact also appeared, but that step has `continue-on-error: true` and is not the build blocker.
-7. Tried the GitHub run/job log endpoints. The connector refused the complete archive because it was about 1.016 MB, above its 1,000,000-byte response limit. The public job page requires sign-in to display raw logs. Therefore the exact Gradle exception is still unverified; do not guess it from the generic exit-code annotation.
-8. Added CI-only diagnostics on this branch: Gradle now writes to `gradle-build.log`, uses plain console plus stacktrace, and on failure emits a short annotation and uploads `gradle-build-failure.log` (failure-only, 3-day retention). The shell still exits with Gradle's original non-zero status. No application behavior or dependency versions were changed in this diagnostic step.
-9. Added this handoff so the next agent can resume from the actual Actions result rather than repeat the credential/AnimatedBottomBar investigation.
+1. Located the repo through the connected GitHub account and confirmed PR #2 targets `main` from `feature/kotatsu-parsers-redo`.
+2. Confirmed the repository Actions secret named `JITPACK_AUTH_TOKEN` exists. Its value was not read or printed.
+3. Reviewed build attempts 2–4. The user-reported attempt 3 failure was HTTP 403 for `RepoDevil/AnimatedBottomBar:7fcb9af`.
+4. Reviewed commits `9ed1d1b` (passes the JitPack token into Gradle), `df20c88` (changed AnimatedBottomBar to its public upstream), and `432f487` (switched it to Maven Central).
+5. Verified `nl.joery.animatedbottombar:library:1.1.0` has a Maven Central POM. That proves the coordinate is published, not that it compiles in the app.
+6. Run #5 (`40054885820`, head `432f487`) checked out the project and reached `Build with Gradle`, then failed. APK upload was skipped. The absent previous `last-sha` artifact is not the blocker: its download step has `continue-on-error: true`.
+7. The original run/job log archive exceeded the GitHub connector's 1,000,000-byte response limit. Added failure-only Gradle diagnostics in commit `fae91ff`.
+8. Run #6 (`40057295044`, head `fae91ff`) failed in Gradle and uploaded artifact `gradle-build-failure` (ID `12546147187`). Its excerpt showed `:app:processGoogleAlphaResources FAILED` and `java.lang.OutOfMemoryError` in a Gradle worker thread. The specific heap/native-memory exhaustion mechanism was not recorded. No APK was uploaded.
+9. The checked-in Gradle heap cap was 2 GiB. This follow-up raises it to 4 GiB, caps Gradle workers at two, and improves the failure excerpt to retain matching leading errors as well as the log tail. This is a targeted memory mitigation, not a confirmed fix until CI produces an APK.
 
 ## Current verification state
 
-- Run #5 failed at Gradle; no APK was produced or uploaded.
-- The branch has not yet been verified by a successful APK build after the diagnostic change. A push to this branch should trigger the `Build APK and Notify Discord` workflow.
-- On failure, inspect the `Gradle failure detail` check annotation and download the `gradle-build-failure` artifact; do not conclude the Kotatsu integration compiles until `Dantotsu` APK artifact is present.
-- On successful build, the expected artifact contains `app/build/outputs/apk/google/alpha/app-google-alpha.apk`. The fork's workflow does not post the APK to the upstream Discord/Telegram destinations.
+- No successful APK build has been verified yet; the captured excerpt does not establish whether Kotlin compilation completed.
+- A push to this branch runs `Build APK and Notify Discord`.
+- On failure, inspect the `Gradle failure detail` annotation and download `gradle-build-failure` (three-day retention).
+- On success, expected artifact `Dantotsu` contains `app/build/outputs/apk/google/alpha/app-google-alpha.apk`. Fork builds do not post APKs to upstream Discord/Telegram destinations.
+- Do not merge PR #2 or claim the integration runtime-tested until a successful APK artifact is confirmed and the user installs/tests it.
 
 ## Copyable next-agent instructions
 
 ```text
-Continue the APK build investigation in Space4414/Kujaku on feature/kotatsu-parsers-redo. Read AGENTS.md and KOTATSU_BUILD_HANDOFF.md first. The current head is the CI diagnostics commit after 432f487.
+Continue in Space4414/Kujaku on feature/kotatsu-parsers-redo. Read AGENTS.md and KOTATSU_BUILD_HANDOFF.md first. Review the newest GitHub Actions run for this branch; current work includes a Gradle memory mitigation (4 GiB heap, max 2 workers) and failure diagnostics.
 
-1. Inspect the newest 'Build APK and Notify Discord' workflow run for this branch.
-2. If it fails, read the 'Gradle failure detail' annotation and download the 'gradle-build-failure' artifact. Diagnose the exact dependency-resolution or Kotlin compilation error from that evidence; do not guess and do not expose any secret values.
-3. Make the smallest fix on this branch. Keep the change manga-only; do not raise minSdk above 21 or change anime/source behavior. Do not bump Kotlin, AGP, or Gradle without asking the owner.
-4. Push the fix, wait for the workflow, and confirm the APK artifact exists. If it still fails, update this handoff with the exact error, attempted fix, and next concrete action.
-5. If the Actions log archive is still too large for the connector, use the concise check annotation or the failure-only artifact rather than retrying the oversized log endpoint.
+1. If the run succeeds, verify that artifact Dantotsu contains app/build/outputs/apk/google/alpha/app-google-alpha.apk. Report the run and artifact; do not claim the parser integration itself was runtime-tested.
+2. If it fails, inspect the Gradle failure detail annotation and download gradle-build-failure. Diagnose the exact first cause from that evidence; do not repeat the old AnimatedBottomBar/JitPack fix without fresh evidence.
+3. Make the smallest supported fix on this branch and rerun CI. Keep changes manga-only, keep minSdk at 21 or lower, and do not change anime behavior. Do not bump Kotlin, AGP, or Gradle without asking the owner.
+4. Never reveal or print secret values. The repository secret name JITPACK_AUTH_TOKEN is configured; if fresh logs show another JitPack 403, verify the authorized account can read that specific repository without exposing the token.
+5. If still blocked, update this handoff with exact evidence, attempted fixes, and one concrete next step so another agent can continue without repeating investigation.
 ```
 
-## Useful GitHub CLI commands (if `gh` is available)
+## Useful commands (if `gh` is available)
 
 ```sh
 gh run list --repo Space4414/Kujaku --branch feature/kotatsu-parsers-redo --workflow 'Build APK and Notify Discord' --limit 5
