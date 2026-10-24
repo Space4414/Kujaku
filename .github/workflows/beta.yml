@@ -98,17 +98,51 @@ jobs:
 
     - name: Build with Gradle
       if: ${{ env.SKIP_BUILD != 'true' }}
+      env:
+        JITPACK_AUTH_TOKEN: ${{ secrets.JITPACK_AUTH_TOKEN }}
       run: |
         if [ "${{ github.repository }}" == "rebelonion/Dantotsu" ]; then
           ./gradlew assembleGoogleAlpha \
             -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/key.keystore \
             -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
             -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
-            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }};
+            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }} \
+            --stacktrace --console=plain > gradle-build.log 2>&1 || GRADLE_STATUS=$?
         else
-          ./gradlew assembleGoogleAlpha;
+          ./gradlew assembleGoogleAlpha --stacktrace --console=plain > gradle-build.log 2>&1 || GRADLE_STATUS=$?
         fi
-          
+        GRADLE_STATUS=${GRADLE_STATUS:-0}
+        if [ "$GRADLE_STATUS" -ne 0 ]; then
+          ERROR_SUMMARY=$(
+            {
+              grep -E -A 8 '(^FAILURE:|^\* What went wrong:|Could not resolve|Could not find|Could not GET|HTTP 403|Execution failed for task|^e: |Unresolved reference|OutOfMemoryError)' gradle-build.log | head -n 60 || true
+              echo '---- tail of Gradle output ----'
+              tail -n 45 gradle-build.log
+            }
+          )
+          printf '%s\n' "$ERROR_SUMMARY" > gradle-build-failure.log
+          {
+            echo "## Gradle build failure"
+            echo '```text'
+            cat gradle-build-failure.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          DETAIL=$(head -n 8 gradle-build-failure.log | tr '\n' ' ')
+          DETAIL=${DETAIL//'%'/'%25'}
+          DETAIL=${DETAIL//$'\r'/'%0D'}
+          DETAIL=${DETAIL//$'\n'/'%0A'}
+          echo "::error title=Gradle failure detail::$DETAIL"
+          exit "$GRADLE_STATUS"
+        fi
+        cat gradle-build.log
+
+    - name: Upload Gradle failure diagnostics
+      if: ${{ failure() && hashFiles('gradle-build-failure.log') != '' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: gradle-build-failure
+        path: gradle-build-failure.log
+        retention-days: 3
     - name: Upload a Build Artifact
       if: ${{ env.SKIP_BUILD != 'true' }}
       uses: actions/upload-artifact@v4
