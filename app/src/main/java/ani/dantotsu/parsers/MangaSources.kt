@@ -5,6 +5,7 @@ import ani.dantotsu.lazyList
 import ani.dantotsu.settings.saving.PrefManager
 import ani.dantotsu.settings.saving.PrefName
 import eu.kanade.tachiyomi.extension.manga.model.MangaExtension
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 
@@ -20,7 +21,10 @@ object MangaSources : MangaReadSources() {
 
         // Initialize with the first value from StateFlow
         val initialExtensions = fromExtensions.first()
-        list = createParsersFromExtensions(initialExtensions) + Lazier(
+        list = sortPinnedMangaSources(
+            createParsers(initialExtensions),
+            pinnedMangaSources
+        ) + Lazier(
             { OfflineMangaParser() },
             "Downloaded"
         )
@@ -29,7 +33,7 @@ object MangaSources : MangaReadSources() {
         // Update as StateFlow emits new values
         fromExtensions.collect { extensions ->
             list = sortPinnedMangaSources(
-                createParsersFromExtensions(extensions),
+                createParsers(extensions),
                 pinnedMangaSources
             ) + Lazier(
                 { OfflineMangaParser() },
@@ -46,6 +50,18 @@ object MangaSources : MangaReadSources() {
             "Downloaded"
         )
     }
+
+    private fun createParsers(extensions: List<MangaExtension.Installed>): List<Lazier<BaseParser>> =
+        createParsersFromExtensions(extensions) + createKotatsuParsers()
+
+    private fun createKotatsuParsers(): List<Lazier<BaseParser>> =
+        MangaParserSource.entries.asSequence()
+            .filterNot { it.isBroken }
+            .map { source ->
+                val locale = source.locale.ifBlank { "multi" }
+                val sourceName = "Kotatsu: " + source.title + " (" + locale + ")"
+                Lazier<BaseParser>({ KotatsuMangaParser(source) }, sourceName)
+            }.toList()
 
     private fun createParsersFromExtensions(extensions: List<MangaExtension.Installed>): List<Lazier<BaseParser>> {
         return extensions.map { extension ->
