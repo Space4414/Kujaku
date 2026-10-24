@@ -98,6 +98,8 @@ jobs:
 
     - name: Build with Gradle
       if: ${{ env.SKIP_BUILD != 'true' }}
+      env:
+        JITPACK_AUTH_TOKEN: ${{ secrets.JITPACK_AUTH_TOKEN }}
       run: |
         if [ "${{ github.repository }}" == "rebelonion/Dantotsu" ]; then
           ./gradlew assembleGoogleAlpha \
