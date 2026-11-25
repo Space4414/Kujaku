@@ -68,10 +68,11 @@ internal class ExtensionGithubApi {
                 PrefManager.getVal<Set<String>>(PrefName.AnimeExtensionRepos).toMutableList()
 
             repos.forEach {
-                val repoUrl = if (it.contains("index.min.json")) {
-                    it
+                val normalized = it.replace("https://github.com/", "https://raw.githubusercontent.com/").replace("/blob/", "/")
+                val repoUrl = if (normalized.endsWith("index.min.json")) {
+                    normalized
                 } else {
-                    "$it${if (it.endsWith('/')) "" else "/"}index.min.json"
+                    "$normalized${if (normalized.endsWith('/')) "" else "/"}index.min.json"
                 }
                 try {
                     val githubResponse = try {
@@ -156,10 +157,11 @@ internal class ExtensionGithubApi {
                 PrefManager.getVal<Set<String>>(PrefName.MangaExtensionRepos).toMutableList()
 
             repos.forEach {
-                val repoUrl = if (it.contains("index.min.json")) {
-                    it
+                val normalized = it.replace("https://github.com/", "https://raw.githubusercontent.com/").replace("/blob/", "/")
+                val repoUrl = if (normalized.endsWith("index.min.json")) {
+                    normalized
                 } else {
-                    "$it${if (it.endsWith('/')) "" else "/"}index.min.json"
+                    "$normalized${if (normalized.endsWith('/')) "" else "/"}index.min.json"
                 }
                 try {
                     val githubResponse = try {
@@ -208,10 +210,11 @@ internal class ExtensionGithubApi {
                 PrefManager.getVal<Set<String>>(PrefName.NovelExtensionRepos).toMutableList()
 
             repos.forEach {
-                val repoUrl = if (it.contains("index.min.json")) {
-                    it
+                val normalized = it.replace("https://github.com/", "https://raw.githubusercontent.com/").replace("/blob/", "/")
+                val repoUrl = if (normalized.endsWith("index.min.json")) {
+                    normalized
                 } else {
-                    "$it${if (it.endsWith('/')) "" else "/"}index.min.json"
+                    "$normalized${if (normalized.endsWith('/')) "" else "/"}index.min.json"
                 }
                 try {
                     val githubResponse = try {
