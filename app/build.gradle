@@ -14,7 +14,7 @@ android {
     compileSdk 35
 
     defaultConfig {
-        applicationId "ani.dantotsu"
+        applicationId "app.kujaku"
         minSdk 21
         targetSdk 35
         versionCode((System.currentTimeMillis() / 60000).toInteger())
