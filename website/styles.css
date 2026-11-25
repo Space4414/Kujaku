@@ -37,3 +37,28 @@ body:before,body:after{display:none;filter:none}
 }
 @media(max-width:380px){.brand-note{font-size:8px;padding:8px 10px}.hero h1{font-size:49px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Anton display typography */
+.hero h1,.page-hero h1,.intro-grid h2,.final-cta h2,.feature-list h2,.inline-cta h2,.release-card h2,.timeline-item h2{
+ font-family:'Anton',Impact,sans-serif;
+ font-weight:400;
+ letter-spacing:.005em;
+}
+.hero h1,.page-hero h1{line-height:1.04}
+.intro-grid h2,.final-cta h2{line-height:1.12}
+.hero-copy .eyebrow{animation:kujaku-rise .65s cubic-bezier(.22,1,.36,1) both}
+.hero h1{animation:kujaku-rise .72s .08s cubic-bezier(.22,1,.36,1) both}
+.hero .lead{animation:kujaku-rise .72s .16s cubic-bezier(.22,1,.36,1) both}
+.hero .actions{animation:kujaku-rise .72s .24s cubic-bezier(.22,1,.36,1) both}
+.hero .meta{animation:kujaku-rise .72s .32s cubic-bezier(.22,1,.36,1) both}
+.brand-emblem{animation:kujaku-float 5s ease-in-out infinite}
+.brand-halo{animation:kujaku-breathe 5s ease-in-out infinite}
+@keyframes kujaku-rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes kujaku-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes kujaku-breathe{0%,100%{opacity:.55;transform:scale(.98)}50%{opacity:.9;transform:scale(1.025)}}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .55s cubic-bezier(.22,1,.36,1),transform .55s cubic-bezier(.22,1,.36,1)}
+.reveal.is-visible{opacity:1;transform:translateY(0)}
+.cards article.reveal:nth-child(2){transition-delay:.08s}
+.cards article.reveal:nth-child(3){transition-delay:.16s}
+@media(hover:hover){.cards article{transition:transform .22s ease,border-color .22s ease}.cards article:hover{transform:translateY(-4px);border-color:var(--a)}.text-link,.btn{transition:transform .2s ease,color .2s ease}.text-link:hover{transform:translateX(3px)}}
+@media(prefers-reduced-motion:reduce){.hero-copy .eyebrow,.hero h1,.hero .lead,.hero .actions,.hero .meta,.brand-emblem,.brand-halo,.reveal{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}}
