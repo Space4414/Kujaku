@@ -1,6 +1,6 @@
 (() => {
  const root=document.documentElement;
- const theme=localStorage.getItem("kujaku-theme")||"ocean";root.dataset.theme=theme;
+ const theme=localStorage.getItem("kujaku-theme")||"saikou";root.dataset.theme=theme;
  const header=document.getElementById("site-header"),footer=document.getElementById("site-footer");
  const nav=[["Features","/features.html"],["Download","/download.html"],["Changelog","/changelog.html"],["FAQ","/faq.html"],["Privacy","/privacy.html"]];
  const current=location.pathname==="/"?"/":location.pathname;
