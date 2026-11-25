@@ -1,4 +1,4 @@
-name: Build Alpha APK
+name: Build and Publish Alpha
 
 on:
   push:
@@ -7,17 +7,23 @@ on:
       - '**/*.md'
       - 'LICENSE*'
   workflow_dispatch:
+    inputs:
+      release_notes:
+        description: 'Optional notes for this Alpha release'
+        required: false
+        type: string
+        default: ''
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: kujaku-alpha
+  group: kujaku-alpha-release
   cancel-in-progress: false
 
 jobs:
   build:
-    name: Build F-Droid Alpha
+    name: Build and publish F-Droid Alpha
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -35,10 +41,31 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: |
-            platform-tools
-            platforms;android-35
-            build-tools;35.0.0
+          packages: 'platform-tools;platforms;android-35;build-tools;35.0.0'
+
+      - name: Configure production signing key
+        env:
+          KEYSTORE_FILE_B64: ${{ secrets.KEYSTORE_FILE }}
+          KEYSTORE_PASSWORD_SECRET: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS_SECRET: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD_SECRET: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in KEYSTORE_FILE_B64 KEYSTORE_PASSWORD_SECRET KEY_ALIAS_SECRET KEY_PASSWORD_SECRET; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing required signing secret: ${name}. Add the Kujaku production signing secrets before publishing releases."
+              exit 1
+            fi
+          done
+          printf '%s' "$KEYSTORE_FILE_B64" | base64 --decode > "$GITHUB_WORKSPACE/kujaku-release.jks"
+          {
+            echo "KEYSTORE_FILE=$GITHUB_WORKSPACE/kujaku-release.jks"
+            echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD_SECRET"
+            echo "KEY_ALIAS=$KEY_ALIAS_SECRET"
+            echo "KEY_PASSWORD=$KEY_PASSWORD_SECRET"
+            echo "VERSION_NAME=3.2.${GITHUB_RUN_NUMBER}"
+            echo "VERSION_CODE=$(date +%s)"
+          } >> "$GITHUB_ENV"
 
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
@@ -48,20 +75,38 @@ jobs:
           CI: 'true'
         run: ./gradlew assembleFdroidAlpha --stacktrace --no-configuration-cache
 
-      - name: Upload Alpha APK
+      - name: Move alpha-latest tag to this build
+        run: |
+          git tag -f alpha-latest "$GITHUB_SHA"
+          git push origin refs/tags/alpha-latest --force
+
+      - name: Publish Alpha GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: alpha-latest
+          name: "Kujaku Alpha ${{ env.VERSION_NAME }} (Build #${{ github.run_number }})"
+          body: |
+            ## 🦚 Kujaku Alpha ${{ env.VERSION_NAME }}
+
+            Automatically built from the latest `main` commit.
+
+            ${{ inputs.release_notes }}
+
+            This is a pre-release build for testing.
+          files: app/build/outputs/apk/fdroid/alpha/*.apk
+          prerelease: true
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Alpha Actions artifact
         uses: actions/upload-artifact@v4
         with:
           name: kujaku-alpha-${{ github.run_number }}
           path: app/build/outputs/apk/fdroid/alpha/*.apk
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
 
-      - name: Build summary
-        run: |
-          {
-            echo "## 🦚 Kujaku Alpha build"
-            echo ""
-            echo "- Commit: `$GITHUB_SHA`"
-            echo "- Branch: `$GITHUB_REF_NAME`"
-            echo "- APK: downloadable from this run's Artifacts section"
-          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Clean up signing key
+        if: always()
+        run: rm -f "$GITHUB_WORKSPACE/kujaku-release.jks"
