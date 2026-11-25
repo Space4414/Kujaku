@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_version">App Version</string>
+    <string name="changelog">Changelog</string>
+    <string name="changelog_desc">View recent changes for this Kujaku release channel</string>
+</resources>

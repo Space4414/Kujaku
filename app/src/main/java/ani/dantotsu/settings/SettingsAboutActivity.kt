@@ -16,6 +16,7 @@ import ani.dantotsu.databinding.ActivitySettingsAboutBinding
 import ani.dantotsu.initActivity
 import ani.dantotsu.navBarHeight
 import ani.dantotsu.others.CustomBottomDialog
+import ani.dantotsu.others.UpdateCenter
 import ani.dantotsu.restartApp
 import ani.dantotsu.settings.saving.PrefManager
 import ani.dantotsu.settings.saving.PrefName
@@ -48,13 +49,11 @@ class SettingsAboutActivity : AppCompatActivity() {
                 arrayListOf(
                     Settings(
                         type = 1,
-                        name = getString(R.string.faq),
-                        desc = getString(R.string.faq_desc),
-                        icon = R.drawable.ic_round_help_24,
-                        onClick = {
-                            startActivity(Intent(context, FAQActivity::class.java))
-                        },
-                        isActivity = true
+                        name = getString(R.string.app_version),
+                        desc = getString(R.string.version_current, BuildConfig.VERSION_NAME),
+                        icon = R.drawable.ic_round_new_releases_24,
+                        onClick = { UpdateCenter.showChangelog(this@SettingsAboutActivity) },
+                        onLongClick = { UpdateCenter.checkForUpdates(this@SettingsAboutActivity) }
                     ),
                     Settings(
                         type = 2,
@@ -64,8 +63,22 @@ class SettingsAboutActivity : AppCompatActivity() {
                         isChecked = PrefManager.getVal(PrefName.CheckUpdate),
                         switch = { isChecked, _ ->
                             PrefManager.setVal(PrefName.CheckUpdate, isChecked)
-                        },
-                        isVisible = !BuildConfig.FLAVOR.contains("fdroid")
+                        }
+                    ),
+                    Settings(
+                        type = 1,
+                        name = getString(R.string.changelog),
+                        desc = getString(R.string.changelog_desc),
+                        icon = R.drawable.ic_round_info_24,
+                        onClick = { UpdateCenter.showChangelog(this@SettingsAboutActivity) }
+                    ),
+                    Settings(
+                        type = 1,
+                        name = getString(R.string.faq),
+                        desc = getString(R.string.faq_desc),
+                        icon = R.drawable.ic_round_help_24,
+                        onClick = { startActivity(Intent(context, FAQActivity::class.java)) },
+                        isActivity = true
                     ),
                     Settings(
                         type = 2,
@@ -92,10 +105,7 @@ class SettingsAboutActivity : AppCompatActivity() {
                         attachToSwitch = {
                             it.settingsExtraIcon.visibility = View.VISIBLE
                             it.settingsExtraIcon.setImageResource(R.drawable.ic_round_share_24)
-                            it.settingsExtraIcon.setOnClickListener {
-                                Logger.shareLog(context)
-                            }
-
+                            it.settingsExtraIcon.setOnClickListener { Logger.shareLog(context) }
                         }
                     ),
                     Settings(
@@ -103,18 +113,14 @@ class SettingsAboutActivity : AppCompatActivity() {
                         name = getString(R.string.devs),
                         desc = getString(R.string.devs_desc),
                         icon = R.drawable.ic_round_accessible_forward_24,
-                        onClick = {
-                            DevelopersDialogFragment().show(supportFragmentManager, "dialog")
-                        }
+                        onClick = { DevelopersDialogFragment().show(supportFragmentManager, "dialog") }
                     ),
                     Settings(
                         type = 1,
                         name = getString(R.string.forks),
                         desc = getString(R.string.forks_desc),
                         icon = R.drawable.ic_round_restaurant_24,
-                        onClick = {
-                            ForksDialogFragment().show(supportFragmentManager, "dialog")
-                        }
+                        onClick = { ForksDialogFragment().show(supportFragmentManager, "dialog") }
                     ),
                     Settings(
                         type = 1,
@@ -124,13 +130,10 @@ class SettingsAboutActivity : AppCompatActivity() {
                         onClick = {
                             val text = TextView(context)
                             text.setText(R.string.full_disclaimer)
-
                             CustomBottomDialog.newInstance().apply {
                                 setTitleText(context.getString(R.string.disclaimer))
                                 addView(text)
-                                setNegativeButton(context.getString(R.string.close)) {
-                                    dismiss()
-                                }
+                                setNegativeButton(context.getString(R.string.close)) { dismiss() }
                                 show(supportFragmentManager, "dialog")
                             }
                         }
@@ -142,10 +145,8 @@ class SettingsAboutActivity : AppCompatActivity() {
                         icon = R.drawable.ic_incognito_24,
                         onClick = {
                             val text = TextView(context)
-                            val pPLink =
-                                "https://raw.githubusercontent.com/rebelonion/Dantotsu/main/privacy_policy.md"
-                            val backup =
-                                "https://gcore.jsdelivr.net/gh/rebelonion/dantotsu/privacy_policy.md"
+                            val pPLink = "https://raw.githubusercontent.com/rebelonion/Dantotsu/main/privacy_policy.md"
+                            val backup = "https://gcore.jsdelivr.net/gh/rebelonion/dantotsu/privacy_policy.md"
                             text.text = getString(R.string.loading)
                             val markWon = try {
                                 buildMarkwon(this@SettingsAboutActivity, false)
@@ -155,33 +156,23 @@ class SettingsAboutActivity : AppCompatActivity() {
                             CoroutineScope(Dispatchers.IO).launch {
                                 val res = try {
                                     val out = client.get(pPLink)
-                                    if (out.code != 200) {
-                                        client.get(backup)
-                                    } else {
-                                        out
-                                    }.text
+                                    if (out.code != 200) client.get(backup).text else out.text
                                 } catch (e: Exception) {
                                     getString(R.string.failed_to_load)
                                 }
-                                runOnUiThread {
-                                    markWon.setMarkdown(text, res)
-                                }
+                                runOnUiThread { markWon.setMarkdown(text, res) }
                             }
-
                             CustomBottomDialog.newInstance().apply {
                                 setTitleText(context.getString(R.string.privacy_policy))
                                 addView(text)
-                                setNegativeButton(context.getString(R.string.close)) {
-                                    dismiss()
-                                }
+                                setNegativeButton(context.getString(R.string.close)) { dismiss() }
                                 show(supportFragmentManager, "dialog")
                             }
                         }
-                    ),
-
                     )
+                )
             )
-            binding.settingsRecyclerView.layoutManager =
+            settingsRecyclerView.layoutManager =
                 LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         }
     }
