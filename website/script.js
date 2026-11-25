@@ -17,6 +17,17 @@
  if(document.body.dataset.page==="changelog"){const host=document.getElementById("timeline");fetch(api,{headers:{Accept:"application/vnd.github+json"}}).then(r=>{if(!r.ok)throw Error();return r.json()}).then(rs=>{host.innerHTML=rs.length?rs.map(r=>'<article class="timeline-item"><div class="timeline-marker">↳</div><div><div class="timeline-meta"><b>'+escapeHtml(r.tag_name)+'</b><time>'+new Date(r.published_at).toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"})+'</time>'+(r.prerelease?'<em>PRE-RELEASE</em>':"")+'</div><h2>'+escapeHtml(r.name||r.tag_name)+'</h2><div class="release-body">'+markdownLines(r.body||"No release notes were added for this release.")+'</div><a class="text-link" href="'+r.html_url+'">View on GitHub ↗</a></div></article>').join(""):'<div class="empty">No published releases yet.</div>'}).catch(()=>host.innerHTML='<div class="empty">Release notes are temporarily unavailable. <a href="https://github.com/Space4414/Kujaku/releases">Open GitHub Releases ↗</a></div>')}
  function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
  function markdownLines(s){return s.split("\n").filter(x=>x.trim()).map(x=>'<p>'+escapeHtml(x.replace(/^[-*] /,"• "))+'</p>').join("")}
+ // Small, one-shot reveal observer inspired by Tsuki's entrance transitions.
+ if("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+  const revealTargets=document.querySelectorAll(".intro-grid,.cards article,.final-cta");
+  revealTargets.forEach(el=>el.classList.add("reveal"));
+  const revealObserver=new IntersectionObserver(entries=>{
+   entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add("is-visible");revealObserver.unobserve(entry.target)}});
+  },{threshold:0.12});
+  revealTargets.forEach(el=>revealObserver.observe(el));
+ }else{
+  document.querySelectorAll(".intro-grid,.cards article,.final-cta").forEach(el=>el.classList.add("is-visible"));
+ }
  const faqs=[
  ["Getting started","What is Kujaku?","Kujaku is an open-source Android app for anime tracking and manga reading. It grew from the Dantotsu project and is being developed as an independent app with its own identity. Kujaku (孔雀 / くじゃく) means “peacock” in Japanese."],
  ["Getting started","What are some features of Kujaku?","Discover anime and manga, keep your lists in sync with AniList, read manga from supported external sources, stream supported anime, manage downloads, and personalize the experience with themes and reader settings. Availability depends on the source and integration."],
