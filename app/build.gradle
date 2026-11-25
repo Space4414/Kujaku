@@ -35,8 +35,6 @@ android {
             // Google Play specific configuration
             dimension "store"
             isDefault true
-            apply plugin: 'com.google.gms.google-services'
-            apply plugin: 'com.google.firebase.crashlytics'
         }
     }
 
@@ -76,6 +74,17 @@ android {
         freeCompilerArgs = ["-Xcontext-receivers", "-Xmulti-platform"]
     }
     namespace 'ani.dantotsu'
+}
+
+// Firebase tooling is only needed for Google-flavor builds. Applying these
+// plugins unconditionally also creates Google Services tasks for F-Droid
+// variants, which then fail because F-Droid has no Firebase client config.
+def requestedGoogleVariant = gradle.startParameter.taskNames.any {
+    it.toLowerCase().contains("google")
+}
+if (requestedGoogleVariant) {
+    apply plugin: 'com.google.gms.google-services'
+    apply plugin: 'com.google.firebase.crashlytics'
 }
 
 dependencies {
