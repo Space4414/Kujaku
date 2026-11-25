@@ -42,7 +42,7 @@ jobs:
       - name: Build and test
         env:
           CI: 'true'
-        run: ./gradlew testFdroidAlphaUnitTest assembleFdroidAlpha --stacktrace --no-configuration-cache
+        run: ./gradlew testFdroidAlphaUnitTest assembleFdroidAlpha --stacktrace --no-configuration-cache --max-workers=1 -Pkotlin.compiler.execution.strategy=in-process -Dorg.gradle.jvmargs='-Xmx5g -Dfile.encoding=UTF-8'
 
       - name: Upload CI APK
         if: success()
