@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_version">App Version</string>
-    <string name="check_app_updates">Check for app updates</string>
-    <string name="check_app_updates_desc">Automatically check for updates in your release channel</string>
     <string name="changelog">Changelog</string>
     <string name="changelog_desc">See what's new in your Kujaku release channel</string>
 </resources>
