@@ -40,7 +40,6 @@ android {
         fdroid {
             // F-Droid specific configuration
             dimension "store"
-            versionNameSuffix "-fdroid"
         }
         google {
             // Google Play specific configuration
@@ -52,7 +51,6 @@ android {
     buildTypes {
         alpha {
             applicationIdSuffix ".beta" // keep as beta by popular request
-            versionNameSuffix "-alpha01-" + gitCommitHash
             manifestPlaceholders.icon_placeholder = "@mipmap/ic_launcher_alpha"
             manifestPlaceholders.icon_placeholder_round = "@mipmap/ic_launcher_alpha_round"
             debuggable System.getenv("CI") == null
@@ -61,7 +59,6 @@ android {
         }
         debug {
             applicationIdSuffix ".beta"
-            versionNameSuffix "-beta01"
             manifestPlaceholders.icon_placeholder = "@mipmap/ic_launcher_beta"
             manifestPlaceholders.icon_placeholder_round = "@mipmap/ic_launcher_beta_round"
             debuggable false
