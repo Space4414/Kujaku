@@ -46,19 +46,31 @@ body:before,body:after{display:none;filter:none}
 }
 .hero h1,.page-hero h1{line-height:1.04}
 .intro-grid h2,.final-cta h2{line-height:1.12}
-.hero-copy .eyebrow{animation:kujaku-rise .65s cubic-bezier(.22,1,.36,1) both}
-.hero h1{animation:kujaku-rise .72s .08s cubic-bezier(.22,1,.36,1) both}
-.hero .lead{animation:kujaku-rise .72s .16s cubic-bezier(.22,1,.36,1) both}
-.hero .actions{animation:kujaku-rise .72s .24s cubic-bezier(.22,1,.36,1) both}
-.hero .meta{animation:kujaku-rise .72s .32s cubic-bezier(.22,1,.36,1) both}
-.brand-emblem{animation:kujaku-float 5s ease-in-out infinite}
-.brand-halo{animation:kujaku-breathe 5s ease-in-out infinite}
-@keyframes kujaku-rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.hero-copy .eyebrow{animation:kujaku-rise 1.15s cubic-bezier(.22,1,.36,1) both}
+.hero h1{animation:kujaku-rise 1.25s .16s cubic-bezier(.22,1,.36,1) both}
+.hero .lead{animation:kujaku-rise 1.25s .38s cubic-bezier(.22,1,.36,1) both}
+.hero .actions{animation:kujaku-rise 1.25s .60s cubic-bezier(.22,1,.36,1) both}
+.hero .meta{animation:kujaku-rise 1.25s .82s cubic-bezier(.22,1,.36,1) both}
+.brand-emblem{animation:kujaku-float 8s ease-in-out infinite}
+.brand-halo{animation:kujaku-breathe 8s ease-in-out infinite}
+@keyframes kujaku-rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 @keyframes kujaku-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
 @keyframes kujaku-breathe{0%,100%{opacity:.55;transform:scale(.98)}50%{opacity:.9;transform:scale(1.025)}}
-.reveal{opacity:0;transform:translateY(18px);transition:opacity .55s cubic-bezier(.22,1,.36,1),transform .55s cubic-bezier(.22,1,.36,1)}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity 1s cubic-bezier(.22,1,.36,1),transform 1s cubic-bezier(.22,1,.36,1)}
 .reveal.is-visible{opacity:1;transform:translateY(0)}
-.cards article.reveal:nth-child(2){transition-delay:.08s}
-.cards article.reveal:nth-child(3){transition-delay:.16s}
+.cards article.reveal:nth-child(2){transition-delay:.18s}
+.cards article.reveal:nth-child(3){transition-delay:.36s}
 @media(hover:hover){.cards article{transition:transform .22s ease,border-color .22s ease}.cards article:hover{transform:translateY(-4px);border-color:var(--a)}.text-link,.btn{transition:transform .2s ease,color .2s ease}.text-link:hover{transform:translateX(3px)}}
 @media(prefers-reduced-motion:reduce){.hero-copy .eyebrow,.hero h1,.hero .lead,.hero .actions,.hero .meta,.brand-emblem,.brand-halo,.reveal{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}}
+
+/* Consistent Anton display type across every page */
+h1,h2,h3,.drawer-title,.faq-question,.legal h2{
+ font-family:'Anton',Impact,sans-serif!important;
+ font-weight:400!important;
+ letter-spacing:.015em!important;
+}
+h1{line-height:1.06}
+h2{line-height:1.12}
+h3{line-height:1.18}
+.faq-question{font-size:17px!important}
+.drawer-title{font-size:27px!important}
