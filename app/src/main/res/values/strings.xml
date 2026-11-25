@@ -9,7 +9,7 @@
     <string name="login">Login</string>
     <string name="logout">Logout</string>
 
-    <string name="dantotsu" translatable="false">https://dantotsu.app/</string>
+    <string name="dantotsu" translatable="false">https://github.com/Space4414/Kujaku/</string>
     <string name="discord" translatable="false">https://discord.gg/4HPZ5nAWwM</string>
     <string name="github" translatable="false">https://github.com/Space4414/Kujaku</string>
     <string name="telegram" translatable="false" tools:ignore="Typos">https://t.me/+gzBCQExtLQo1YTNh </string>
@@ -200,7 +200,7 @@
     <string name="theme">Theme</string>
     <string name="ui_settings">UI Settings</string>
     <string name="about">About</string>
-    <string name="desc">"    Kujaku is crafted from the ashes of Saikou and based on simplistic yet state-of-the-art elegance. It is an Anilist only client, which also lets you stream-download Anime through extensions &amp; Manga.\nKujaku literally means the \"best of the best\" in japanese. Well, we would like to say this is the best open source app for anime and manga on Android, what would you say?"</string>
+    <string name="desc">"    Kujaku is crafted from the ashes of Saikou and based on simplistic yet state-of-the-art elegance. It is an Anilist only client, which also lets you stream-download Anime through extensions &amp; Manga.\nKujaku (孔雀; くじゃく) means “peacock” in Japanese. Well, we would like to say this is the best open source app for anime and manga on Android, what would you say?"</string>
     <string name="devs">Developers/Helpers</string>
     <string name="disclaimer">Disclaimer</string>
     <string name="full_disclaimer">
@@ -455,7 +455,7 @@
     <string name="review">Review</string>
     <string name="reviews">Reviews</string>
     <string name="discord_nothing_button">Display only the first button</string>
-    <string name="discord_dantotsu_button">Display dantotsu in the second button</string>
+    <string name="discord_dantotsu_button">Display Kujaku in the second button</string>
     <string name="discord_anilist_button">Display your AniList profile instead</string>
     <string name="discord_rich_presence">Discord Rich Presence</string>
     <string name="stream_on_dantotsu">Stream on Kujaku</string>
@@ -634,7 +634,7 @@
     <string name="female">Female</string>
 
     <string name="question_1">What is Kujaku?</string>
-    <string name="answer_1">Kujaku is crafted from the ashes of Saikou and based on simplistic yet state-of-the-art elegance. It is an Anilist only client, which also lets you stream &amp; download Anime / Manga through extensions. \n>Kujaku (断トツ; Dan-totsu) literally means the best of the best in Japanese. Well, we would like to say this is the best open source app for anime and manga on Android, but hey, Try it out yourself &amp; judge!</string>
+    <string name="answer_1">Kujaku is crafted from the ashes of Saikou and based on simplistic yet state-of-the-art elegance. It is an Anilist only client, which also lets you stream &amp; download Anime / Manga through extensions. \n>Kujaku (孔雀; くじゃく) means “peacock” in Japanese. Well, we would like to say this is the best open source app for anime and manga on Android, but hey, Try it out yourself &amp; judge!</string>
 
     <string name="question_2">What are some features of Kujaku?</string>
     <string name="answer_2">Some mentionable features of Kujaku are\n\n- Easy and functional way to both, watch anime and read manga and light novels, Ad Free.\n- A completely open source app with a nice UI &amp; Animations\n- 3rd party plugin support \n- Synchronize anime and manga real-time with AniList. Easily categorize anime and manga based on your current status. (Powered by AniList)\n- Find all shows using thoroughly and frequently updated list of all trending, popular and ongoing anime based on scores.\n- View extensive details about anime shows, movies and manga titles. It also features ability to countdown to the next episode of airing anime. (Powered by AniList &amp; MyAnimeList)</string>
