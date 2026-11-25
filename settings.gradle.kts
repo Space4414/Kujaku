@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Dantotsu"
 include(":app")
+include(":animatedbottombar")

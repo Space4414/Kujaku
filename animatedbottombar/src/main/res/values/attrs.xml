@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="AnimatedBottomBar">
+        <attr name="abb_selectedTabType" format="enum">
+            <enum name="text" value="0" />
+            <enum name="icon" value="1" />
+        </attr>
+
+        <attr name="abb_tabAnimationSelected" format="enum">
+            <enum name="none" value="0" />
+            <enum name="slide" value="1" />
+            <enum name="fade" value="2" />
+        </attr>
+        <attr name="abb_tabAnimation" format="enum">
+            <enum name="none" value="0" />
+            <enum name="slide" value="1" />
+            <enum name="fade" value="2" />
+        </attr>
+        <attr name="abb_animationDuration" format="integer" />
+        <attr name="abb_animationInterpolator" format="reference" />
+
+        <attr name="abb_tabColorSelected" format="color" />
+        <attr name="abb_tabColorDisabled" format="color" />
+        <attr name="abb_tabColor" format="color" />
+
+        <!-- Indicator -->
+        <attr name="abb_indicatorColor" format="color" />
+        <attr name="abb_indicatorHeight" format="dimension" />
+        <attr name="abb_indicatorMargin" format="dimension" />
+        <attr name="abb_indicatorAppearance" format="enum">
+            <enum name="invisible" value="0" />
+            <enum name="square" value="1" />
+            <enum name="round" value="2" />
+        </attr>
+        <attr name="abb_indicatorLocation" format="enum">
+            <enum name="top" value="0" />
+            <enum name="bottom" value="1" />
+        </attr>
+        <attr name="abb_indicatorAnimation" format="enum">
+            <enum name="none" value="0" />
+            <enum name="slide" value="1" />
+            <enum name="fade" value="2" />
+        </attr>
+
+        <attr name="abb_tabs" format="reference" />
+        <attr name="abb_selectedIndex" format="integer" />
+        <attr name="abb_selectedTabId" format="reference" />
+
+        <attr name="abb_rippleEnabled" format="boolean" />
+        <attr name="abb_rippleColor" format="color" />
+
+        <attr name="abb_textAppearance" format="reference" />
+        <attr name="abb_textStyle" format="flags">
+            <flag name="bold" value="1" />
+            <flag name="italic" value="2" />
+            <flag name="normal" value="0" />
+        </attr>
+        <attr name="abb_textSize" format="dimension" />
+        <attr name="abb_iconSize" format="dimension" />
+
+        <!-- Badge -->
+        <attr name="abb_badgeAnimation" format="enum">
+            <enum name="none" value="0" />
+            <enum name="scale" value="1" />
+            <enum name="fade" value="2" />
+        </attr>
+        <attr name="abb_badgeAnimationDuration" format="integer" />
+        <attr name="abb_badgeBackgroundColor" format="color" />
+        <attr name="abb_badgeTextColor" format="color" />
+        <attr name="abb_badgeTextSize" format="dimension" />
+        <attr name="abb_isVerticalBar" format="boolean" />
+        <attr name="abb_portraitIndicator" format="boolean" />
+    </declare-styleable>
+</resources>

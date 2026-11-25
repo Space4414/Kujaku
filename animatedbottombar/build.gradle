@@ -1,0 +1,33 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'nl.joery.animatedbottombar'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 21
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    api 'androidx.appcompat:appcompat:1.6.1'
+    api 'androidx.core:core-ktx:1.13.1'
+    api 'androidx.recyclerview:recyclerview:1.3.2'
+    api 'androidx.viewpager:viewpager:1.0.0'
+    api 'androidx.viewpager2:viewpager2:1.0.0'
+    api 'com.google.android.flexbox:flexbox:3.0.0'
+    api 'androidx.constraintlayout:constraintlayout:2.1.4'
+    api 'androidx.navigation:navigation-ui-ktx:2.7.7'
+}
