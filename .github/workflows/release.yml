@@ -30,7 +30,7 @@ jobs:
             exit 1
           fi
           echo "VERSION_NAME=$VERSION" >> "$GITHUB_ENV"
-          echo "VERSION_CODE=$(date +%s)" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$(($(date +%s) / 60 + 1000000000))" >> "$GITHUB_ENV"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
