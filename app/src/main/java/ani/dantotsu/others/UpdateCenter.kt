@@ -1,11 +1,12 @@
 package ani.dantotsu.others
 
 import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import ani.dantotsu.BuildConfig
 import ani.dantotsu.client
-import ani.dantotsu.openLinkInBrowser
-import ani.dantotsu.toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -62,19 +63,19 @@ object UpdateCenter {
                 if (activity.isFinishing || activity.isDestroyed) return@withContext
                 val release = result.getOrNull()
                 if (release == null) {
-                    activity.toast("Couldn't check for Kujaku updates. Please try again.")
+                    Toast.makeText(activity, "Couldn't check for Kujaku updates. Please try again.", Toast.LENGTH_SHORT).show()
                     return@withContext
                 }
                 val version = versionFromTag(release.tag)
                 if (!isNewer(version, currentVersion())) {
-                    activity.toast("You're using the latest Kujaku version for this channel.")
+                    Toast.makeText(activity, "You're using the latest Kujaku version for this channel.", Toast.LENGTH_SHORT).show()
                     return@withContext
                 }
                 AlertDialog.Builder(activity)
                     .setTitle(release.name.ifBlank { "Kujaku $version" })
                     .setMessage(release.body.ifBlank { "A new update is available." })
                     .setNegativeButton("Later", null)
-                    .setPositiveButton("View update") { _, _ -> activity.openLinkInBrowser(release.url) }
+                    .setPositiveButton("View update") { _, _ -> activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(release.url))) }
                     .show()
             }
         }
@@ -87,7 +88,7 @@ object UpdateCenter {
                 if (activity.isFinishing || activity.isDestroyed) return@withContext
                 val releases = result.getOrNull()
                 if (releases.isNullOrEmpty()) {
-                    activity.toast("Couldn't load the Kujaku changelog.")
+                    Toast.makeText(activity, "Couldn't load the Kujaku changelog.", Toast.LENGTH_SHORT).show()
                     return@withContext
                 }
                 val message = releases.joinToString("\n\n") { release ->
@@ -98,7 +99,7 @@ object UpdateCenter {
                     .setTitle("Kujaku Changelog")
                     .setMessage(message)
                     .setPositiveButton("Open releases") { _, _ ->
-                        activity.openLinkInBrowser("https://github.com/$REPOSITORY/releases")
+                        activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/$REPOSITORY/releases")))
                     }
                     .setNegativeButton("Close", null)
                     .show()
