@@ -72,7 +72,7 @@ jobs:
       - name: Build Beta APK
         env:
           CI: 'true'
-        run: ./gradlew assembleFdroidDebug --stacktrace --no-configuration-cache
+        run: ./gradlew assembleFdroidDebug --stacktrace --no-configuration-cache --max-workers=1 -Pkotlin.compiler.execution.strategy=in-process -Dorg.gradle.jvmargs='-Xmx5g -Dfile.encoding=UTF-8'
 
       - name: Move beta-latest tag to this build
         run: |
