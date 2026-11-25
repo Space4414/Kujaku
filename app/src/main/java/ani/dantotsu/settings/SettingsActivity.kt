@@ -1,7 +1,6 @@
 package ani.dantotsu.settings
 
 import android.content.Intent
-import android.graphics.drawable.Animatable
 import android.os.Build.BRAND
 import android.os.Build.DEVICE
 import android.os.Build.SUPPORTED_ABIS
@@ -10,7 +9,6 @@ import android.os.Build.VERSION.RELEASE
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.updateLayoutParams
@@ -24,8 +22,6 @@ import ani.dantotsu.initActivity
 import ani.dantotsu.navBarHeight
 import ani.dantotsu.openLinkInBrowser
 import ani.dantotsu.others.AppUpdater
-import ani.dantotsu.others.CustomBottomDialog
-import ani.dantotsu.pop
 import ani.dantotsu.setSafeOnClickListener
 import ani.dantotsu.settings.saving.PrefManager
 import ani.dantotsu.settings.saving.PrefName
@@ -35,9 +31,7 @@ import ani.dantotsu.statusBarHeight
 import ani.dantotsu.themes.ThemeManager
 import ani.dantotsu.toast
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 
 class SettingsActivity : AppCompatActivity() {
@@ -190,16 +184,6 @@ class SettingsActivity : AppCompatActivity() {
                 }
             }
 
-            settingBuyMeCoffee.setOnClickListener {
-                lifecycleScope.launch {
-                    it.pop()
-                }
-                openLinkInBrowser(getString(R.string.coffee))
-            }
-            lifecycleScope.launch {
-                settingBuyMeCoffee.pop()
-            }
-
             loginDiscord.setOnClickListener {
                 openLinkInBrowser(getString(R.string.discord))
             }
@@ -211,12 +195,13 @@ class SettingsActivity : AppCompatActivity() {
             }
 
 
-            (settingsLogo.drawable as Animatable).start()
+            settingsLogo.setImageResource(R.drawable.kujaku_logo)
+            animateLogo()
             val array = resources.getStringArray(R.array.tips)
 
             settingsLogo.setSafeOnClickListener {
                 cursedCounter++
-                (settingsLogo.drawable as Animatable).start()
+                animateLogo()
                 if (cursedCounter % 16 == 0) {
                     val oldVal: Boolean = PrefManager.getVal(PrefName.OC)
                     if (!oldVal) {
@@ -231,30 +216,22 @@ class SettingsActivity : AppCompatActivity() {
 
             }
 
-            lifecycleScope.launch(Dispatchers.IO) {
-                delay(2000)
-                runOnUiThread {
-                    if (Random.nextInt(0, 100) > 69) {
-                        CustomBottomDialog.newInstance().apply {
-                            title = this@SettingsActivity.getString(R.string.enjoying_app)
-                            addView(TextView(this@SettingsActivity).apply {
-                                text = context.getString(R.string.consider_donating)
-                            })
+        }
+    }
 
-                            setNegativeButton(this@SettingsActivity.getString(R.string.no_moners)) {
-                                snackString(R.string.you_be_rich)
-                                dismiss()
-                            }
-
-                            setPositiveButton(this@SettingsActivity.getString(R.string.donate)) {
-                                settingBuyMeCoffee.performClick()
-                                dismiss()
-                            }
-                            show(supportFragmentManager, "dialog")
-                        }
-                    }
-                }
-            }
+    private fun animateLogo() {
+        binding.settingsLogo.apply {
+            animate().cancel()
+            alpha = 0f
+            scaleX = 0.82f
+            scaleY = 0.82f
+            animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(700L)
+                .setInterpolator(android.view.animation.OvershootInterpolator(1.1f))
+                .start()
         }
     }
 
