@@ -209,9 +209,10 @@ class KotatsuMangaLoaderContext(context: Context) : MangaLoaderContext() {
                 }
 
                 override fun onPageFinished(view: WebView, url: String) {
-                    if (!config.pageScript.isNullOrBlank() && !pageScriptStarted) {
+                    val pageScript = config.pageScript
+                    if (!pageScript.isNullOrBlank() && !pageScriptStarted) {
                         pageScriptStarted = true
-                        view.evaluateJavascript(config.pageScript) { scheduleIdleFinish() }
+                        view.evaluateJavascript(pageScript) { scheduleIdleFinish() }
                     } else {
                         scheduleIdleFinish()
                     }
