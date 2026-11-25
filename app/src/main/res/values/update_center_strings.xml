@@ -2,5 +2,5 @@
 <resources>
     <string name="app_version">App Version</string>
     <string name="changelog">Changelog</string>
-    <string name="changelog_desc">See what's new in your Kujaku release channel</string>
+    <string name="changelog_desc">View recent changes for this Kujaku release channel</string>
 </resources>
