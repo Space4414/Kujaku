@@ -1,0 +1,73 @@
+name: Build Stable Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_notes:
+        description: 'Optional notes for this stable candidate'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kujaku-stable-candidate
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build F-Droid Release candidate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Build Release candidate
+        env:
+          CI: 'true'
+        run: ./gradlew assembleFdroidRelease --stacktrace --no-configuration-cache
+
+      - name: Upload Stable candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: kujaku-stable-candidate-${{ github.run_number }}
+          path: app/build/outputs/apk/fdroid/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Build summary
+        env:
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+        run: |
+          {
+            echo "## 🦚 Kujaku Stable candidate"
+            echo ""
+            echo "- Commit: `$GITHUB_SHA`"
+            echo "- APK: downloadable from this run's Artifacts section"
+            echo ""
+            if [ -n "$RELEASE_NOTES" ]; then
+              echo "### Notes"
+              printf '%s\n' "$RELEASE_NOTES"
+            else
+              echo "No additional release notes supplied."
+            fi
+            echo ""
+            echo "> Candidate artifact only. It is not published as a GitHub Release."
+          } >> "$GITHUB_STEP_SUMMARY"

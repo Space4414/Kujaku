@@ -1,0 +1,61 @@
+name: Tagged Release Build
+
+on:
+  push:
+    tags:
+      - 'v[0-9]*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kujaku-tagged-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build tagged F-Droid APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Build tagged Release APK
+        env:
+          CI: 'true'
+        run: ./gradlew assembleFdroidRelease --stacktrace --no-configuration-cache
+
+      - name: Upload tagged APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kujaku-${{ github.ref_name }}
+          path: app/build/outputs/apk/fdroid/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Release build summary
+        run: |
+          {
+            echo "## 🦚 Tagged Kujaku build"
+            echo ""
+            echo "- Tag: `$GITHUB_REF_NAME`"
+            echo "- Commit: `$GITHUB_SHA`"
+            echo "- APK is available in this workflow run's Artifacts section."
+            echo ""
+            echo "> This workflow deliberately does not publish a GitHub Release until production signing is configured and verified."
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,62 @@
+name: Build Alpha APK
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kujaku-alpha
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build F-Droid Alpha
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Build Alpha APK
+        env:
+          CI: 'true'
+        run: ./gradlew assembleFdroidAlpha --stacktrace --no-configuration-cache
+
+      - name: Upload Alpha APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: kujaku-alpha-${{ github.run_number }}
+          path: app/build/outputs/apk/fdroid/alpha/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Build summary
+        run: |
+          {
+            echo "## 🦚 Kujaku Alpha build"
+            echo ""
+            echo "- Commit: `$GITHUB_SHA`"
+            echo "- Branch: `$GITHUB_REF_NAME`"
+            echo "- APK: downloadable from this run's Artifacts section"
+          } >> "$GITHUB_STEP_SUMMARY"
