@@ -92,17 +92,6 @@
                 android:alpha="0.5"
                 android:gravity="center"
                 android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/loginDiscord"
-                    android:layout_width="48dp"
-                    android:layout_height="64dp"
-                    android:layout_margin="8dp"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_discord"
-                    app:tint="?attr/colorOnBackground"
-                    tools:ignore="ContentDescription" />
-
                 <ImageView
                     android:id="@+id/loginGithub"
                     android:layout_width="48dp"
@@ -110,16 +99,6 @@
                     android:layout_margin="8dp"
                     android:padding="6dp"
                     android:src="@drawable/ic_github"
-                    app:tint="?attr/colorOnBackground"
-                    tools:ignore="ContentDescription" />
-
-                <ImageView
-                    android:id="@+id/loginTelegram"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_margin="8dp"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_telegram"
                     app:tint="?attr/colorOnBackground"
                     tools:ignore="ContentDescription" />
 
