@@ -1,4 +1,4 @@
-name: Tagged Release Build
+name: Publish Tagged Stable Release
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - 'v[0-9]*'
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: kujaku-tagged-release-${{ github.ref }}
@@ -14,13 +14,23 @@ concurrency:
 
 jobs:
   build:
-    name: Build tagged F-Droid APK
+    name: Build and publish tagged F-Droid Stable
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Determine version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Stable tags must use vMAJOR.MINOR.PATCH"
+            exit 1
+          fi
+          echo "VERSION_NAME=$VERSION" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$(($(date +%s) / 60 + 1000000000))" >> "$GITHUB_ENV"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -30,37 +40,59 @@ jobs:
           cache: gradle
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
-          packages: |
-            platform-tools
-            platforms;android-35
-            build-tools;35.0.0
+          accept-android-sdk-licenses: true
+
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Configure production signing key
+        env:
+          KEYSTORE_FILE_B64: ${{ secrets.KEYSTORE_FILE }}
+          KEYSTORE_PASSWORD_SECRET: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS_SECRET: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD_SECRET: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in KEYSTORE_FILE_B64 KEYSTORE_PASSWORD_SECRET KEY_ALIAS_SECRET KEY_PASSWORD_SECRET; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing required signing secret: ${name}. Add the Kujaku production signing secrets before publishing releases."
+              exit 1
+            fi
+          done
+          printf '%s' "$KEYSTORE_FILE_B64" | base64 --decode > "$GITHUB_WORKSPACE/kujaku-release.jks"
+          {
+            echo "KEYSTORE_FILE=$GITHUB_WORKSPACE/kujaku-release.jks"
+            echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD_SECRET"
+            echo "KEY_ALIAS=$KEY_ALIAS_SECRET"
+            echo "KEY_PASSWORD=$KEY_PASSWORD_SECRET"
+          } >> "$GITHUB_ENV"
 
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Build tagged Release APK
+      - name: Build Stable APK
         env:
           CI: 'true'
-        run: ./gradlew assembleFdroidRelease --stacktrace --no-configuration-cache
+        run: ./gradlew assembleFdroidRelease --stacktrace --no-configuration-cache --max-workers=1 -Pkotlin.compiler.execution.strategy=in-process -Dorg.gradle.jvmargs='-Xmx5g -Dfile.encoding=UTF-8'
 
-      - name: Upload tagged APK artifact
-        uses: actions/upload-artifact@v4
+      - name: Publish Stable GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: kujaku-${{ github.ref_name }}
-          path: app/build/outputs/apk/fdroid/release/*.apk
-          if-no-files-found: error
-          retention-days: 30
+          tag_name: ${{ github.ref_name }}
+          name: "Kujaku ${{ env.VERSION_NAME }}"
+          body: |
+            ## 🦚 Kujaku ${{ env.VERSION_NAME }}
 
-      - name: Release build summary
-        run: |
-          {
-            echo "## 🦚 Tagged Kujaku build"
-            echo ""
-            echo "- Tag: `$GITHUB_REF_NAME`"
-            echo "- Commit: `$GITHUB_SHA`"
-            echo "- APK is available in this workflow run's Artifacts section."
-            echo ""
-            echo "> This workflow deliberately does not publish a GitHub Release until production signing is configured and verified."
-          } >> "$GITHUB_STEP_SUMMARY"
+            Stable release built from tag `${{ github.ref_name }}`.
+          files: app/build/outputs/apk/fdroid/release/*.apk
+          prerelease: false
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up signing key
+        if: always()
+        run: rm -f "$GITHUB_WORKSPACE/kujaku-release.jks"

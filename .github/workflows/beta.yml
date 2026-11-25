@@ -1,24 +1,24 @@
-name: Build Beta APK
+name: Build and Publish Beta
 
 on:
   workflow_dispatch:
     inputs:
       release_notes:
-        description: 'Optional notes to include in the build summary'
+        description: 'Optional notes for this Beta release'
         required: false
         type: string
         default: ''
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: kujaku-beta
+  group: kujaku-beta-release
   cancel-in-progress: false
 
 jobs:
   build:
-    name: Build Beta candidate
+    name: Build and publish F-Droid Beta
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -34,45 +34,77 @@ jobs:
           cache: gradle
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
-          packages: |
-            platform-tools
-            platforms;android-35
-            build-tools;35.0.0
+          accept-android-sdk-licenses: true
+
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Configure production signing key
+        env:
+          KEYSTORE_FILE_B64: ${{ secrets.KEYSTORE_FILE }}
+          KEYSTORE_PASSWORD_SECRET: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS_SECRET: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD_SECRET: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in KEYSTORE_FILE_B64 KEYSTORE_PASSWORD_SECRET KEY_ALIAS_SECRET KEY_PASSWORD_SECRET; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing required signing secret: ${name}. Add the Kujaku production signing secrets before publishing releases."
+              exit 1
+            fi
+          done
+          printf '%s' "$KEYSTORE_FILE_B64" | base64 --decode > "$GITHUB_WORKSPACE/kujaku-release.jks"
+          {
+            echo "KEYSTORE_FILE=$GITHUB_WORKSPACE/kujaku-release.jks"
+            echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD_SECRET"
+            echo "KEY_ALIAS=$KEY_ALIAS_SECRET"
+            echo "KEY_PASSWORD=$KEY_PASSWORD_SECRET"
+            echo "VERSION_NAME=3.2.${GITHUB_RUN_NUMBER}"
+            echo "VERSION_CODE=$(($(date +%s) / 60 + 1000000000))"
+          } >> "$GITHUB_ENV"
 
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Build Beta candidate
+      - name: Build Beta APK
         env:
           CI: 'true'
-        run: ./gradlew assembleFdroidAlpha --stacktrace --no-configuration-cache
+        run: ./gradlew assembleFdroidDebug --stacktrace --no-configuration-cache --max-workers=1 -Pkotlin.compiler.execution.strategy=in-process -Dorg.gradle.jvmargs='-Xmx5g -Dfile.encoding=UTF-8'
 
-      - name: Upload Beta candidate
+      - name: Move beta-latest tag to this build
+        run: |
+          git tag -f beta-latest "$GITHUB_SHA"
+          git push origin refs/tags/beta-latest --force
+
+      - name: Publish Beta GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: beta-latest
+          name: "Kujaku Beta ${{ env.VERSION_NAME }} (Build #${{ github.run_number }})"
+          body: |
+            ## 🦚 Kujaku Beta ${{ env.VERSION_NAME }}
+
+            ${{ inputs.release_notes }}
+
+            This is a pre-release build for testing.
+          files: app/build/outputs/apk/fdroid/debug/*.apk
+          prerelease: true
+          draft: false
+          overwrite_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Beta Actions artifact
         uses: actions/upload-artifact@v4
         with:
           name: kujaku-beta-${{ github.run_number }}
-          path: app/build/outputs/apk/fdroid/alpha/*.apk
+          path: app/build/outputs/apk/fdroid/debug/*.apk
           if-no-files-found: error
           retention-days: 30
 
-      - name: Build summary
-        env:
-          RELEASE_NOTES: ${{ inputs.release_notes }}
-        run: |
-          {
-            echo "## 🦚 Kujaku Beta candidate"
-            echo ""
-            echo "- Commit: `$GITHUB_SHA`"
-            echo "- APK: downloadable from this run's Artifacts section"
-            echo ""
-            if [ -n "$RELEASE_NOTES" ]; then
-              echo "### Notes"
-              printf '%s\n' "$RELEASE_NOTES"
-            else
-              echo "No additional release notes supplied."
-            fi
-            echo ""
-            echo "> This is a test artifact, not a published production release."
-          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Clean up signing key
+        if: always()
+        run: rm -f "$GITHUB_WORKSPACE/kujaku-release.jks"
