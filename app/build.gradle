@@ -13,13 +13,24 @@ def gitCommitHash = providers.exec {
 android {
     compileSdk 35
 
+    def releaseVersionCode = (System.getenv("VERSION_CODE") ?: "300200100").toInteger()
+    def releaseVersionName = System.getenv("VERSION_NAME") ?: "3.2.1"
+
+    signingConfigs {
+        release {
+            storeFile file(System.getenv("KEYSTORE_FILE") ?: "missing-production-keystore.jks")
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias System.getenv("KEY_ALIAS") ?: ""
+            keyPassword System.getenv("KEY_PASSWORD") ?: ""
+        }
+    }
+
     defaultConfig {
         applicationId "app.kujaku"
         minSdk 21
         targetSdk 35
-        versionCode((System.currentTimeMillis() / 60000).toInteger())
-        versionName "3.2.1"
-        versionCode 300200100
+        versionCode releaseVersionCode
+        versionName releaseVersionName
         signingConfig signingConfigs.debug
 
     }
@@ -46,6 +57,7 @@ android {
             manifestPlaceholders.icon_placeholder_round = "@mipmap/ic_launcher_alpha_round"
             debuggable System.getenv("CI") == null
             isDefault true
+            if (System.getenv("KEYSTORE_FILE")) signingConfig signingConfigs.release
         }
         debug {
             applicationIdSuffix ".beta"
@@ -53,11 +65,13 @@ android {
             manifestPlaceholders.icon_placeholder = "@mipmap/ic_launcher_beta"
             manifestPlaceholders.icon_placeholder_round = "@mipmap/ic_launcher_beta_round"
             debuggable false
+            if (System.getenv("KEYSTORE_FILE")) signingConfig signingConfigs.release
         }
         release {
             manifestPlaceholders.icon_placeholder = "@mipmap/ic_launcher"
             manifestPlaceholders.icon_placeholder_round = "@mipmap/ic_launcher_round"
             debuggable false
+            if (System.getenv("KEYSTORE_FILE")) signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-gson.pro', 'proguard-rules.pro'
         }
     }
