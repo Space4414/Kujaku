@@ -20,6 +20,7 @@ import ani.dantotsu.copyToClipboard
 import ani.dantotsu.databinding.ActivitySettingsBinding
 import ani.dantotsu.initActivity
 import ani.dantotsu.navBarHeight
+import ani.dantotsu.openLinkInBrowser
 import ani.dantotsu.others.AppUpdater
 import ani.dantotsu.setSafeOnClickListener
 import ani.dantotsu.settings.saving.PrefManager
