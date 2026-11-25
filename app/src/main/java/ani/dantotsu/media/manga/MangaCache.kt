@@ -16,42 +16,58 @@ import eu.kanade.tachiyomi.source.online.HttpSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import okhttp3.Headers
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.io.FileOutputStream
 
-data class ImageData(
+class ImageData private constructor(
     val page: Page,
-    val source: HttpSource
+    val source: HttpSource?,
+    private val kotatsuRequest: KotatsuRequest?,
 ) {
+    private data class KotatsuRequest(val client: OkHttpClient, val request: Request)
+
+    constructor(page: Page, source: HttpSource) : this(page, source, null)
+
     suspend fun fetchAndProcessImage(
-        page: Page,
-        httpSource: HttpSource
-    ): Bitmap? {
-        return withContext(Dispatchers.IO) {
-            try {
-                // Fetch the image
-                val response = httpSource.getImage(page)
-                Logger.log("Response: ${response.code} - ${response.message}")
-
-                // Convert the Response to an InputStream
-                val inputStream = response.body.byteStream()
-
-                // Convert InputStream to Bitmap
-                val bitmap = BitmapFactory.decodeStream(inputStream)
-
-                inputStream.close()
-                //saveImage(bitmap, context.contentResolver, page.imageUrl!!, Bitmap.CompressFormat.JPEG, 100)
-
-                return@withContext bitmap
-            } catch (e: Exception) {
-                // Handle any exceptions
-                Logger.log("An error occurred: ${e.message}")
-                snackString("An error occurred: ${e.message}")
-                return@withContext null
+        page: Page = this.page,
+        httpSource: HttpSource? = source,
+    ): Bitmap? = withContext(Dispatchers.IO) {
+        try {
+            val response = kotatsuRequest?.let { request ->
+                request.client.newCall(request.request).execute()
+            } ?: run {
+                val source = httpSource ?: return@withContext null
+                source.getImage(page)
             }
+            response.use { result ->
+                if (!result.isSuccessful) {
+                    Logger.log("Image request failed: " + result.code + " " + result.message)
+                    return@withContext null
+                }
+                val body = result.body ?: return@withContext null
+                BitmapFactory.decodeStream(body.byteStream())
+            }
+        } catch (e: Exception) {
+            Logger.log("An error occurred: " + e.message)
+            snackString("An error occurred: " + e.message)
+            null
+        }
+    }
+
+    companion object {
+        fun forKotatsu(
+            page: Page,
+            imageUrl: String,
+            headers: Headers,
+            client: OkHttpClient,
+        ): ImageData {
+            val request = Request.Builder().url(imageUrl).headers(headers).build()
+            return ImageData(page, null, KotatsuRequest(client, request))
         }
     }
 }
-
 fun saveImage(
     bitmap: Bitmap,
     contentResolver: ContentResolver,

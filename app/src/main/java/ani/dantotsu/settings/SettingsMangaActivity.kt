@@ -12,6 +12,8 @@ import ani.dantotsu.databinding.ActivitySettingsMangaBinding
 import ani.dantotsu.download.DownloadsManager
 import ani.dantotsu.initActivity
 import ani.dantotsu.media.MediaType
+import ani.dantotsu.parsers.MangaSources
+import ani.dantotsu.parsers.kotatsu.KotatsuSourcePicker
 import ani.dantotsu.navBarHeight
 import ani.dantotsu.restartApp
 import ani.dantotsu.settings.saving.PrefManager
@@ -73,6 +75,17 @@ class SettingsMangaActivity : AppCompatActivity() {
                             startActivity(Intent(context, ReaderSettingsActivity::class.java))
                         },
                         isActivity = true
+                    ),
+                    Settings(
+                        type = 1,
+                        name = getString(R.string.kotatsu_sources),
+                        desc = getString(R.string.kotatsu_sources_desc),
+                        icon = R.drawable.view_list_24,
+                        onClick = {
+                            KotatsuSourcePicker.show(context) {
+                                MangaSources.refreshKotatsuSources()
+                            }
+                        }
                     ),
                     Settings(
                         type = 1,

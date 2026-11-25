@@ -1,6 +1,7 @@
 package ani.dantotsu.parsers
 
 import ani.dantotsu.Lazier
+import ani.dantotsu.parsers.kotatsu.KotatsuSources
 import ani.dantotsu.lazyList
 import ani.dantotsu.settings.saving.PrefManager
 import ani.dantotsu.settings.saving.PrefName
@@ -12,6 +13,7 @@ object MangaSources : MangaReadSources() {
     override var list: List<Lazier<BaseParser>> = emptyList()
     var pinnedMangaSources: List<String> = emptyList()
     var isInitialized = false
+    private var lastExtensions: List<MangaExtension.Installed> = emptyList()
 
     suspend fun init(fromExtensions: StateFlow<List<MangaExtension.Installed>>) {
         pinnedMangaSources =
@@ -20,7 +22,11 @@ object MangaSources : MangaReadSources() {
 
         // Initialize with the first value from StateFlow
         val initialExtensions = fromExtensions.first()
-        list = createParsersFromExtensions(initialExtensions) + Lazier(
+        lastExtensions = initialExtensions
+        list = sortPinnedMangaSources(
+            createParsers(initialExtensions),
+            pinnedMangaSources
+        ) + Lazier(
             { OfflineMangaParser() },
             "Downloaded"
         )
@@ -28,8 +34,9 @@ object MangaSources : MangaReadSources() {
 
         // Update as StateFlow emits new values
         fromExtensions.collect { extensions ->
+            lastExtensions = extensions
             list = sortPinnedMangaSources(
-                createParsersFromExtensions(extensions),
+                createParsers(extensions),
                 pinnedMangaSources
             ) + Lazier(
                 { OfflineMangaParser() },
@@ -37,6 +44,18 @@ object MangaSources : MangaReadSources() {
             )
         }
     }
+
+    /** Rebuild the source list after the user changes enabled Kotatsu parsers. */
+    fun refreshKotatsuSources() {
+        if (!isInitialized) return
+        list = sortPinnedMangaSources(
+            createParsers(lastExtensions),
+            pinnedMangaSources
+        ) + Lazier({ OfflineMangaParser() }, "Downloaded")
+    }
+
+    private fun createParsers(extensions: List<MangaExtension.Installed>): List<Lazier<BaseParser>> =
+        createParsersFromExtensions(extensions) + KotatsuSources.enabledSources()
 
     fun performReorderMangaSources() {
         //remove the downloaded source from the list to avoid duplicates

@@ -2,6 +2,7 @@ package ani.dantotsu.parsers
 
 import ani.dantotsu.FileUrl
 import ani.dantotsu.media.MediaNameAdapter
+import ani.dantotsu.media.manga.ImageData
 import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
@@ -43,6 +44,8 @@ abstract class MangaParser : BaseParser() {
      * **/
     abstract suspend fun loadImages(chapterLink: String, sChapter: SChapter): List<MangaImage>
 
+    /** Download images using the shared manga download queue when this parser supports it. */
+    open suspend fun imageList(sChapter: SChapter): List<ImageData> = emptyList()
 
     open fun getTransformation(): BitmapTransformation? = null
 }

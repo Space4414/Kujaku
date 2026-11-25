@@ -98,6 +98,9 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.github.Blatzar:NiceHttp:0.4.4'
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3'
+    implementation('com.github.clquwu:kotatsu-parsers-redo:dc223c3d80') {
+        exclude group: 'org.json', module: 'json'
+    }
     implementation 'androidx.preference:preference-ktx:1.2.1'
     implementation 'androidx.webkit:webkit:1.11.0'
     implementation "com.anggrayudi:storage:1.5.5"
@@ -128,7 +131,7 @@ dependencies {
 
 //  UI
     implementation 'com.google.android.material:material:1.12.0'
-    implementation 'com.github.RepoDevil:AnimatedBottomBar:7fcb9af'
+    implementation project(':animatedbottombar')
     implementation 'com.flaviofaria:kenburnsview:1.0.7'
     implementation 'com.davemorrissey.labs:subsampling-scale-image-view-androidx:3.10.0'
     implementation 'com.alexvasilkov:gesture-views:2.8.3'
@@ -167,7 +170,12 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp-dnsoverhttps'
     implementation 'com.squareup.okio:okio:3.8.0'
     implementation 'com.squareup.okhttp3:okhttp-brotli:5.0.0-alpha.12'
-    implementation 'org.jsoup:jsoup:1.16.1'
+    // Keep Jsoup on the Android 7-compatible version; newer releases use ThreadLocal.withInitial().
+    implementation('org.jsoup:jsoup:1.16.1') {
+        version {
+            strictly '1.16.1'
+        }
+    }
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json-okio:1.6.3'
     implementation 'com.jakewharton.rxrelay:rxrelay:1.2.0'
     implementation 'com.github.tachiyomiorg:unifile:17bec43'

@@ -975,6 +975,9 @@ Non quae tempore quo provident laudantium qui illo dolor vel quia dolor et exerc
     <string name="skip_loading_extension_icons_desc">Don\'t load icons of extensions on the extension page</string>
     <string name="NSFWExtention_desc">Enable 18+ extensions from search (May remove some useful extensions)</string>
     <string name="reader_settings_desc">All the Reader related settings</string>
+    <string name="kotatsu_sources">Kotatsu sources</string>
+    <string name="kotatsu_sources_desc">Choose which Kotatsu parser sources appear in the manga source list</string>
+    <string name="kotatsu_search_hint">Search by source name or language code (e.g. en)</string>
     <string name="purge_manga_downloads_desc">Delete all downloaded Manga</string>
     <string name="purge_novel_downloads_desc">Delete all downloaded Novels</string>
     <string name="include_list_desc">Include list items in Manga explore page</string>

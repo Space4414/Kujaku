@@ -48,7 +48,6 @@ import ani.dantotsu.navBarHeight
 import ani.dantotsu.notifications.subscription.SubscriptionHelper
 import ani.dantotsu.notifications.subscription.SubscriptionHelper.Companion.saveSubscription
 import ani.dantotsu.others.LanguageMapper
-import ani.dantotsu.parsers.DynamicMangaParser
 import ani.dantotsu.parsers.HMangaSources
 import ani.dantotsu.parsers.MangaParser
 import ani.dantotsu.parsers.MangaSources
@@ -462,10 +461,10 @@ open class MangaReadFragment : Fragment(), ScanlatorSelectionListener {
                 model.continueMedia = false
                 media.manga?.chapters?.get(i.uniqueNumber())?.let { chapter ->
                     val parser =
-                        model.mangaReadSources?.get(media.selected!!.sourceIndex) as? DynamicMangaParser
-                    parser?.let {
+                        model.mangaReadSources?.get(media.selected!!.sourceIndex) as? MangaParser
+                    parser?.let { mangaParser ->
                         CoroutineScope(Dispatchers.IO).launch {
-                            val images = parser.imageList(chapter.sChapter)
+                            val images = mangaParser.imageList(chapter.sChapter)
 
                             // Create a download task
                             val downloadTask = MangaDownloaderService.DownloadTask(

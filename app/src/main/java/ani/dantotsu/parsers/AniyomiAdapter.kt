@@ -391,7 +391,7 @@ class DynamicMangaParser(extension: MangaExtension.Installed) : MangaParser() {
         return ret
     }
 
-    suspend fun imageList(sChapter: SChapter): List<ImageData> {
+    override suspend fun imageList(sChapter: SChapter): List<ImageData> {
         val source = try {
             extension.sources[sourceLanguage]
         } catch (e: Exception) {
