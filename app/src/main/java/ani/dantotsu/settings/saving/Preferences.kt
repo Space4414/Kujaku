@@ -21,6 +21,7 @@ enum class PrefName(val data: Pref) {
     SettingsPreferDub(Pref(Location.General, Boolean::class, false)),
     SubscriptionCheckingNotifications(Pref(Location.General, Boolean::class, true)),
     CheckUpdate(Pref(Location.General, Boolean::class, true)),
+    UpdateCheckInterval(Pref(Location.General, Int::class, 1)),
     VerboseLogging(Pref(Location.General, Boolean::class, false)),
     DohProvider(Pref(Location.General, Int::class, 0)),
     HidePrivate(Pref(Location.General, Boolean::class, false)),
