@@ -11,6 +11,24 @@ android {
         minSdk 21
     }
 
+    flavorDimensions += "store"
+    productFlavors {
+        fdroid {
+            dimension "store"
+        }
+        google {
+            dimension "store"
+        }
+    }
+
+    buildTypes {
+        alpha {
+            matchingFallbacks = ['debug']
+        }
+        debug {}
+        release {}
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
