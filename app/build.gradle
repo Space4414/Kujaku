@@ -121,7 +121,8 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.github.Blatzar:NiceHttp:0.4.4'
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3'
-    implementation('com.github.clquwu:kotatsu-parsers-redo:dc223c3d80') {
+    def kotatsuParsersVersion = providers.gradleProperty("kotatsuParsersVersion").getOrElse("dc223c3d80")
+    implementation("com.github.Kotatsu-Redo:kotatsu-parsers-redo:${kotatsuParsersVersion}") {
         exclude group: 'org.json', module: 'json'
     }
     implementation 'androidx.preference:preference-ktx:1.2.1'
