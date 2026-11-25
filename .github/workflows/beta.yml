@@ -1,4 +1,4 @@
-name: Build APK and Notify Discord
+name: Build Kujaku APK
 
 
 on:
@@ -102,14 +102,14 @@ jobs:
         JITPACK_AUTH_TOKEN: ${{ secrets.JITPACK_AUTH_TOKEN }}
       run: |
         if [ "${{ github.repository }}" == "rebelonion/Dantotsu" ]; then
-          ./gradlew assembleGoogleAlpha \
+          ./gradlew assembleFdroidAlpha \
             -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/key.keystore \
             -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
             -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
             -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }} \
             --stacktrace --console=plain > gradle-build.log 2>&1 || GRADLE_STATUS=$?
         else
-          ./gradlew assembleGoogleAlpha --stacktrace --console=plain > gradle-build.log 2>&1 || GRADLE_STATUS=$?
+          ./gradlew assembleFdroidAlpha --stacktrace --console=plain > gradle-build.log 2>&1 || GRADLE_STATUS=$?
         fi
         GRADLE_STATUS=${GRADLE_STATUS:-0}
         if [ "$GRADLE_STATUS" -ne 0 ]; then
@@ -147,10 +147,10 @@ jobs:
       if: ${{ env.SKIP_BUILD != 'true' }}
       uses: actions/upload-artifact@v4
       with:
-          name: Dantotsu
+          name: Kujaku
           retention-days: 5
           compression-level: 9
-          path: "app/build/outputs/apk/google/alpha/app-google-alpha.apk"
+          path: "app/build/outputs/apk/fdroid/alpha/app-fdroid-alpha.apk"
 
     - name: Upload APK to Discord and Telegram
       if: ${{ github.repository == 'rebelonion/Dantotsu' }}
@@ -338,7 +338,7 @@ jobs:
         # Upload APK to Discord
         if [ "$SKIP_BUILD" != "true" ]; then
           curl -F "payload_json=${contentbody}" \
-               -F "dantotsu_debug=@app/build/outputs/apk/google/alpha/app-google-alpha.apk" \
+               -F "dantotsu_debug=@app/build/outputs/apk/fdroid/alpha/app-fdroid-alpha.apk" \
                ${{ secrets.DISCORD_WEBHOOK }}
         else
           echo "Skipping APK upload to Discord due to SKIP_BUILD being set to true"
@@ -365,7 +365,7 @@ jobs:
 
         # Upload APK to Telegram
         if [ "$SKIP_BUILD" != "true" ]; then
-          APK_PATH="app/build/outputs/apk/google/alpha/app-google-alpha.apk"
+          APK_PATH="app/build/outputs/apk/fdroid/alpha/app-fdroid-alpha.apk"
           response=$(curl -sS -f -X POST \
             "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument" \
             -F "chat_id=-1002117798698" \

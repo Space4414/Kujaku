@@ -18,9 +18,7 @@ import ani.dantotsu.Mapper
 import ani.dantotsu.R
 import ani.dantotsu.buildMarkwon
 import ani.dantotsu.client
-import ani.dantotsu.connections.comments.CommentsAPI
 import ani.dantotsu.currContext
-import ani.dantotsu.decodeBase64ToString
 import ani.dantotsu.logError
 import ani.dantotsu.openLinkInBrowser
 import ani.dantotsu.settings.saving.PrefManager
@@ -39,29 +37,12 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 object AppUpdater {
-    private val fallbackStableUrl: String
-        get() = "aHR0cHM6Ly9hcGkuZGFudG90c3UuYXBwL3VwZGF0ZXMvc3RhYmxl".decodeBase64ToString()
-    private val fallbackBetaUrl: String
-        get() = "aHR0cHM6Ly9hcGkuZGFudG90c3UuYXBwL3VwZGF0ZXMvYmV0YQ==".decodeBase64ToString()
-
-    @Serializable
-    data class FallbackResponse(
-        val version: String,
-        val changelog: String,
-        val downloadUrl: String? = null
-    )
-
     private suspend fun fetchUpdateInfo(repo: String, isDebug: Boolean): Pair<String, String>? {
         return try {
             fetchFromGithub(repo, isDebug)
         } catch (e: Exception) {
-            Logger.log("Github fetch failed, trying fallback: ${e.message}")
-            try {
-                fetchFromFallback(isDebug)
-            } catch (e: Exception) {
-                Logger.log("Fallback fetch failed: ${e.message}")
-                null
-            }
+            Logger.log("Kujaku update check failed: ${e.message}")
+            null
         }
     }
 
@@ -83,23 +64,12 @@ object AppUpdater {
         }
     }
 
-    private suspend fun fetchFromFallback(isDebug: Boolean): Pair<String, String> {
-        val url = if (isDebug) fallbackBetaUrl else fallbackStableUrl
-        val response = CommentsAPI.requestBuilder().get(url).parsed<FallbackResponse>()
-        return response.changelog to response.version
-    }
-
-    private suspend fun fetchApkUrl(repo: String, version: String, isDebug: Boolean): String? {
+    private suspend fun fetchApkUrl(repo: String, version: String): String? {
         return try {
             fetchApkUrlFromGithub(repo, version)
         } catch (e: Exception) {
-            Logger.log("Github APK fetch failed, trying fallback: ${e.message}")
-            try {
-                fetchApkUrlFromFallback(version, isDebug)
-            } catch (e: Exception) {
-                Logger.log("Fallback APK fetch failed: ${e.message}")
-                null
-            }
+            Logger.log("Kujaku APK lookup failed: ${e.message}")
+            null
         }
     }
 
@@ -109,11 +79,6 @@ object AppUpdater {
                 it.browserDownloadURL.endsWith(".apk")
             }
         return apks?.firstOrNull()?.browserDownloadURL
-    }
-
-    private suspend fun fetchApkUrlFromFallback(version: String, isDebug: Boolean): String? {
-        val url = if (isDebug) fallbackBetaUrl else fallbackStableUrl
-        return CommentsAPI.requestBuilder().get("$url/$version").parsed<FallbackResponse>().downloadUrl
     }
 
     suspend fun check(activity: FragmentActivity, post: Boolean = false) {
@@ -153,11 +118,11 @@ object AppUpdater {
                     setPositiveButton(currContext()!!.getString(R.string.lets_go)) {
                         MainScope().launch(Dispatchers.IO) {
                             try {
-                                val apkUrl = fetchApkUrl(repo, version, BuildConfig.DEBUG)
+                                val apkUrl = fetchApkUrl(repo, version)
                                 if (apkUrl != null) {
                                     activity.downloadUpdate(version, apkUrl)
                                 } else {
-                                    openLinkInBrowser("https://github.com/repos/$repo/releases/tag/v$version")
+                                    openLinkInBrowser("https://github.com/$repo/releases/tag/v$version")
                                 }
                             } catch (e: Exception) {
                                 logError(e)
@@ -208,10 +173,10 @@ object AppUpdater {
 
         val request = DownloadManager.Request(Uri.parse(url))
             .setMimeType("application/vnd.android.package-archive")
-            .setTitle("Downloading Dantotsu $version")
+            .setTitle("Downloading Kujaku $version")
             .setDestinationInExternalPublicDir(
                 Environment.DIRECTORY_DOWNLOADS,
-                "Dantotsu $version.apk"
+                "Kujaku $version.apk"
             )
             .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
             .setAllowedOverRoaming(true)

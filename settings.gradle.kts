@@ -15,6 +15,6 @@ dependencyResolutionManagement {
         }
     }
 }
-rootProject.name = "Dantotsu"
+rootProject.name = "Kujaku"
 include(":app")
 include(":animatedbottombar")
