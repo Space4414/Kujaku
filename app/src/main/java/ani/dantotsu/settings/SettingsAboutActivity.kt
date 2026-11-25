@@ -87,7 +87,7 @@ class SettingsAboutActivity : AppCompatActivity() {
                             R.string.update_check_frequency_value,
                             UpdateCheckScheduler.intervals()[PrefManager.getVal<Int>(PrefName.UpdateCheckInterval).coerceIn(0, 3)]
                         ),
-                        icon = R.drawable.ic_round_schedule_24,
+                        icon = R.drawable.ic_round_info_24,
                         onClick = {
                             val labels = arrayOf("3 hours", "6 hours", "12 hours", "24 hours")
                             val selected = PrefManager.getVal<Int>(PrefName.UpdateCheckInterval).coerceIn(0, 3)
