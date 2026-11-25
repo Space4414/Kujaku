@@ -3,6 +3,7 @@ package ani.dantotsu.parsers
 import ani.dantotsu.App
 import ani.dantotsu.FileUrl
 import ani.dantotsu.media.manga.ImageData
+import ani.dantotsu.media.manga.MangaCache
 import ani.dantotsu.util.Logger
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
@@ -22,6 +23,8 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaState as KotatsuState
 import org.koitharu.kotatsu.parsers.model.MangaTag as KotatsuTag
 import java.util.Locale
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 
 /** Adapts one Kotatsu parser to Kujaku's existing manga-source contract. */
 class KotatsuMangaParser(private val kotatsuSource: MangaParserSource) : MangaParser() {
@@ -79,9 +82,23 @@ class KotatsuMangaParser(private val kotatsuSource: MangaParserSource) : MangaPa
             val headers = kotatsuParser.getRequestHeaders()
             kotatsuParser.getPages(sChapter.toKotatsuChapter()).mapIndexed { index, page ->
                 val imageUrl = kotatsuParser.getPageUrl(page)
+                val readerPage = Page(index, page.url, imageUrl)
+
+                // BaseImageAdapter resolves reader pages through MangaCache. Register the
+                // Kotatsu request here so Glide can load it with the parser's headers/interceptor.
+                Injekt.get<MangaCache>().put(
+                    imageUrl,
+                    ImageData.forKotatsu(
+                        page = readerPage,
+                        imageUrl = imageUrl,
+                        headers = headers,
+                        client = downloadClient,
+                    ),
+                )
+
                 MangaImage(
                     url = FileUrl(imageUrl, headers.toKujakuHeaders()),
-                    page = Page(index, page.url, imageUrl),
+                    page = readerPage,
                 )
             }
         }
