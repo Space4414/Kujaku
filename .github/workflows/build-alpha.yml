@@ -74,9 +74,9 @@ jobs:
           MAJOR=$((MAJOR + MINOR / 10))
           MINOR=$((MINOR % 10))
           VERSION_CORE="$MAJOR.$MINOR.$PATCH"
-          echo "VERSION_NAME=$VERSION_CORE - Alpha" >> "$GITHUB_ENV"
-          echo "RELEASE_TAG=alpha-v$VERSION_CORE" >> "$GITHUB_ENV"
-          echo "VERSION_CODE=$(($(date +%s) / 60 + 1000000000))" >> "$GITHUB_ENV"
+          echo "VERSION_NAME=$VERSION_CORE - Alpha"
+          echo "RELEASE_TAG=alpha-v$VERSION_CORE"
+          echo "VERSION_CODE=$(($(date +%s) / 60 + 1000000000))"
           } >> "$GITHUB_ENV"
 
       - name: Make Gradle wrapper executable
