@@ -96,6 +96,7 @@ jobs:
           files: app/build/outputs/apk/fdroid/alpha/*.apk
           prerelease: true
           draft: false
+          overwrite_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
