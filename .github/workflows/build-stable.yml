@@ -39,7 +39,7 @@ jobs:
             exit 1
           fi
           echo "VERSION_NAME=$VERSION_NAME_INPUT" >> "$GITHUB_ENV"
-          echo "VERSION_CODE=$(date +%s)" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$(($(date +%s) / 60 + 1000000000))" >> "$GITHUB_ENV"
           echo "RELEASE_TAG=v$VERSION_NAME_INPUT" >> "$GITHUB_ENV"
 
       - name: Set up JDK 17
