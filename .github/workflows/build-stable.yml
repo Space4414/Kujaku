@@ -1,30 +1,46 @@
-name: Build Stable Candidate
+name: Build and Publish Stable
 
 on:
   workflow_dispatch:
     inputs:
+      version_name:
+        description: 'Stable version, for example 3.2.2'
+        required: true
+        type: string
       release_notes:
-        description: 'Optional notes for this stable candidate'
+        description: 'Release notes'
         required: false
         type: string
         default: ''
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: kujaku-stable-candidate
+  group: kujaku-stable-release
   cancel-in-progress: false
 
 jobs:
   build:
-    name: Build F-Droid Release candidate
+    name: Build and publish F-Droid Stable
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Validate version
+        env:
+          VERSION_NAME_INPUT: ${{ inputs.version_name }}
+        run: |
+          if [[ ! "$VERSION_NAME_INPUT" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Version must use MAJOR.MINOR.PATCH, for example 3.2.2"
+            exit 1
+          fi
+          echo "VERSION_NAME=$VERSION_NAME_INPUT" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$(date +%s)" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=v$VERSION_NAME_INPUT" >> "$GITHUB_ENV"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -36,43 +52,61 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: |
-            platform-tools
-            platforms;android-35
-            build-tools;35.0.0
+          packages: 'platform-tools;platforms;android-35;build-tools;35.0.0'
+
+      - name: Configure production signing key
+        env:
+          KEYSTORE_FILE_B64: ${{ secrets.KEYSTORE_FILE }}
+          KEYSTORE_PASSWORD_SECRET: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS_SECRET: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD_SECRET: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in KEYSTORE_FILE_B64 KEYSTORE_PASSWORD_SECRET KEY_ALIAS_SECRET KEY_PASSWORD_SECRET; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing required signing secret: ${name}. Add the Kujaku production signing secrets before publishing releases."
+              exit 1
+            fi
+          done
+          printf '%s' "$KEYSTORE_FILE_B64" | base64 --decode > "$GITHUB_WORKSPACE/kujaku-release.jks"
+          {
+            echo "KEYSTORE_FILE=$GITHUB_WORKSPACE/kujaku-release.jks"
+            echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD_SECRET"
+            echo "KEY_ALIAS=$KEY_ALIAS_SECRET"
+            echo "KEY_PASSWORD=$KEY_PASSWORD_SECRET"
+          } >> "$GITHUB_ENV"
 
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Build Release candidate
+      - name: Build Stable APK
         env:
           CI: 'true'
         run: ./gradlew assembleFdroidRelease --stacktrace --no-configuration-cache
 
-      - name: Upload Stable candidate
+      - name: Publish Stable GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version_name }}
+          name: "Kujaku ${{ inputs.version_name }}"
+          body: |
+            ## 🦚 Kujaku ${{ inputs.version_name }}
+
+            ${{ inputs.release_notes }}
+          files: app/build/outputs/apk/fdroid/release/*.apk
+          prerelease: false
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Stable Actions artifact
         uses: actions/upload-artifact@v4
         with:
-          name: kujaku-stable-candidate-${{ github.run_number }}
+          name: kujaku-stable-${{ github.run_number }}
           path: app/build/outputs/apk/fdroid/release/*.apk
           if-no-files-found: error
           retention-days: 30
 
-      - name: Build summary
-        env:
-          RELEASE_NOTES: ${{ inputs.release_notes }}
-        run: |
-          {
-            echo "## 🦚 Kujaku Stable candidate"
-            echo ""
-            echo "- Commit: `$GITHUB_SHA`"
-            echo "- APK: downloadable from this run's Artifacts section"
-            echo ""
-            if [ -n "$RELEASE_NOTES" ]; then
-              echo "### Notes"
-              printf '%s\n' "$RELEASE_NOTES"
-            else
-              echo "No additional release notes supplied."
-            fi
-            echo ""
-            echo "> Candidate artifact only. It is not published as a GitHub Release."
-          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Clean up signing key
+        if: always()
+        run: rm -f "$GITHUB_WORKSPACE/kujaku-release.jks"
