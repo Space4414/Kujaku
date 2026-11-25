@@ -77,7 +77,7 @@ jobs:
       - name: Build Alpha APK
         env:
           CI: 'true'
-        run: ./gradlew assembleFdroidAlpha --stacktrace --no-configuration-cache
+        run: ./gradlew assembleFdroidAlpha --stacktrace --no-configuration-cache --max-workers=1 -Pkotlin.compiler.execution.strategy=in-process -Dorg.gradle.jvmargs='-Xmx5g -Dfile.encoding=UTF-8'
 
       - name: Move alpha-latest tag to this build
         run: |
