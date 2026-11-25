@@ -143,7 +143,16 @@ jobs:
           OLD="${{ steps.current.outputs.sha }}"
           NEW="${{ steps.latest.outputs.sha }}"
           TITLE="chore(deps): bump Kotatsu Parsers Redo ${OLD} → ${NEW}"
-          BODY="This update was detected automatically from Kotatsu-Redo/kotatsu-parsers-redo.\n\n- Waited for the matching JitPack artifact.\n- Ran Kujaku's F-Droid Alpha unit tests.\n- Built the F-Droid Alpha APK successfully.\n\nMerge this PR to include the updated manga sources in the next Kujaku release. No changes are pushed directly to main."
+          BODY=$(cat <<EOF
+          This update was detected automatically from Kotatsu-Redo/kotatsu-parsers-redo.
+
+          - Waited for the matching JitPack artifact.
+          - Ran Kujaku's F-Droid Alpha unit tests.
+          - Built the F-Droid Alpha APK successfully.
+
+          Merge this PR to include the updated manga sources in the next Kujaku release. No changes are pushed directly to main.
+          EOF
+          )
           git push --force origin "$AUTO_BRANCH"
           EXISTING=$(gh pr list --head "$AUTO_BRANCH" --base main --state open --json number --jq '.[0].number' || true)
           if [[ -n "$EXISTING" ]]; then
