@@ -1,10 +1,14 @@
 package ani.dantotsu.settings
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,6 +21,7 @@ import ani.dantotsu.initActivity
 import ani.dantotsu.navBarHeight
 import ani.dantotsu.others.CustomBottomDialog
 import ani.dantotsu.others.UpdateCenter
+import ani.dantotsu.notifications.UpdateCheckScheduler
 import ani.dantotsu.restartApp
 import ani.dantotsu.settings.saving.PrefManager
 import ani.dantotsu.settings.saving.PrefName
@@ -63,6 +68,39 @@ class SettingsAboutActivity : AppCompatActivity() {
                         isChecked = PrefManager.getVal(PrefName.CheckUpdate),
                         switch = { isChecked, _ ->
                             PrefManager.setVal(PrefName.CheckUpdate, isChecked)
+                            if (isChecked) {
+                                UpdateCheckScheduler.schedule(this@SettingsAboutActivity)
+                                if (Build.VERSION.SDK_INT >= 33 &&
+                                    checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 4103)
+                                }
+                            } else {
+                                UpdateCheckScheduler.cancel(this@SettingsAboutActivity)
+                            }
+                        }
+                    ),
+                    Settings(
+                        type = 1,
+                        name = getString(R.string.update_check_frequency),
+                        desc = getString(
+                            R.string.update_check_frequency_value,
+                            UpdateCheckScheduler.intervals()[PrefManager.getVal<Int>(PrefName.UpdateCheckInterval).coerceIn(0, 3)]
+                        ),
+                        icon = R.drawable.ic_round_schedule_24,
+                        onClick = {
+                            val labels = arrayOf("3 hours", "6 hours", "12 hours", "24 hours")
+                            val selected = PrefManager.getVal<Int>(PrefName.UpdateCheckInterval).coerceIn(0, 3)
+                            AlertDialog.Builder(this@SettingsAboutActivity)
+                                .setTitle(R.string.update_check_frequency)
+                                .setSingleChoiceItems(labels, selected) { dialog, which ->
+                                    PrefManager.setVal(PrefName.UpdateCheckInterval, which)
+                                    UpdateCheckScheduler.schedule(this@SettingsAboutActivity)
+                                    dialog.dismiss()
+                                    recreate()
+                                }
+                                .setNegativeButton(R.string.cancel, null)
+                                .show()
                         }
                     ),
                     Settings(
