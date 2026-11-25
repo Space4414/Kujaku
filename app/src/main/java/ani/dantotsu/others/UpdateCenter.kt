@@ -92,7 +92,7 @@ object UpdateCenter {
                 }
                 val message = releases.joinToString("\n\n") { release ->
                     val heading = release.name.ifBlank { release.tag }
-                    "$heading\n\${release.body.ifBlank { "No release notes provided." }}"
+                    "$heading\n${release.body.ifBlank { "No release notes provided." }}"
                 }
                 AlertDialog.Builder(activity)
                     .setTitle("Kujaku Changelog")
