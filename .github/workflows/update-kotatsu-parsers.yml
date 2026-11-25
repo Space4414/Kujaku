@@ -1,0 +1,164 @@
+name: Update Kotatsu Parsers Redo
+
+# Check upstream daily. A new parser commit is proposed only after JitPack
+# publishes it and Kujaku's F-Droid Alpha unit tests/build pass.
+# The workflow never writes directly to main.
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-kotatsu-parsers
+  cancel-in-progress: false
+
+jobs:
+  check-and-propose:
+    name: Check, build and propose parser update
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      AUTO_BRANCH: auto/update-kotatsu-parsers
+
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Get latest upstream commit
+        id: latest
+        shell: bash
+        run: |
+          LATEST_FULL=$(curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/Kotatsu-Redo/kotatsu-parsers-redo/commits/master | jq -r '.sha')
+          if [[ ! "$LATEST_FULL" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Could not resolve the latest Kotatsu Parsers Redo commit."
+            exit 1
+          fi
+          LATEST_SHORT="${LATEST_FULL:0:10}"
+          echo "sha=$LATEST_SHORT" >> "$GITHUB_OUTPUT"
+          echo "Upstream Kotatsu Parsers Redo: $LATEST_SHORT"
+
+      - name: Read Kujaku's pinned version
+        id: current
+        shell: bash
+        run: |
+          CURRENT=$(grep -m1 '^kotatsuParsersVersion=' gradle.properties | cut -d= -f2)
+          if [[ ! "$CURRENT" =~ ^[0-9a-f]{10}$ ]]; then
+            echo "::error::gradle.properties does not contain a valid 10-character parser commit."
+            exit 1
+          fi
+          echo "sha=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "Kujaku currently uses: $CURRENT"
+
+      - name: Check whether this update is already proposed
+        id: proposed
+        if: steps.latest.outputs.sha != steps.current.outputs.sha
+        shell: bash
+        run: |
+          git fetch origin "$AUTO_BRANCH" 2>/dev/null || true
+          EXISTING=$(gh pr list --head "$AUTO_BRANCH" --base main --state open --json number --jq '.[0].number' || true)
+          SKIP=false
+          if [[ -n "$EXISTING" ]] && git show "origin/$AUTO_BRANCH:gradle.properties" 2>/dev/null | grep -Fxq "kotatsuParsersVersion=${{ steps.latest.outputs.sha }}"; then
+            SKIP=true
+            echo "An open PR already proposes ${{ steps.latest.outputs.sha }}."
+          fi
+          echo "skip=$SKIP" >> "$GITHUB_OUTPUT"
+
+      - name: Report when already up to date
+        if: steps.latest.outputs.sha == steps.current.outputs.sha
+        run: echo "Kujaku already uses the latest Kotatsu Parsers Redo commit."
+
+      - name: Wait for the new JitPack artifact
+        if: steps.latest.outputs.sha != steps.current.outputs.sha && steps.proposed.outputs.skip != 'true'
+        shell: bash
+        run: |
+          NEW="${{ steps.latest.outputs.sha }}"
+          URL="https://jitpack.io/com/github/Kotatsu-Redo/kotatsu-parsers-redo/${NEW}/kotatsu-parsers-redo-${NEW}.pom"
+          for attempt in $(seq 1 15); do
+            CODE=$(curl -sS -L -o /dev/null -w '%{http_code}' --max-time 180 "$URL" || true)
+            echo "JitPack attempt ${attempt}/15: HTTP ${CODE}"
+            if [[ "$CODE" == "200" ]]; then
+              echo "JitPack published ${NEW}."
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "::error::JitPack did not publish ${NEW} in the allotted time. No PR will be opened."
+          exit 1
+
+      - name: Set up JDK 17
+        if: steps.latest.outputs.sha != steps.current.outputs.sha && steps.proposed.outputs.skip != 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        if: steps.latest.outputs.sha != steps.current.outputs.sha && steps.proposed.outputs.skip != 'true'
+        uses: android-actions/setup-android@v4
+        with:
+          accept-android-sdk-licenses: true
+
+      - name: Install Android SDK packages
+        if: steps.latest.outputs.sha != steps.current.outputs.sha && steps.proposed.outputs.skip != 'true'
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Prepare parser update branch
+        if: steps.latest.outputs.sha != steps.current.outputs.sha && steps.proposed.outputs.skip != 'true'
+        shell: bash
+        run: |
+          OLD="${{ steps.current.outputs.sha }}"
+          NEW="${{ steps.latest.outputs.sha }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$AUTO_BRANCH"
+          sed -i "s/^kotatsuParsersVersion=${OLD}$/kotatsuParsersVersion=${NEW}/" gradle.properties
+          grep -Fxq "kotatsuParsersVersion=${NEW}" gradle.properties
+          git add gradle.properties
+          git commit -m "chore(deps): bump Kotatsu Parsers Redo ${OLD} to ${NEW}"
+
+      - name: Build and test Kujaku with the new parsers
+        if: steps.latest.outputs.sha != steps.current.outputs.sha && steps.proposed.outputs.skip != 'true'
+        env:
+          CI: 'true'
+        run: |
+          chmod +x ./gradlew
+          ./gradlew testFdroidAlphaUnitTest assembleFdroidAlpha --stacktrace --no-configuration-cache --max-workers=1 -Pkotlin.compiler.execution.strategy=in-process -Dorg.gradle.jvmargs='-Xmx5g -Dfile.encoding=UTF-8'
+
+      - name: Push branch and open or update pull request
+        if: steps.latest.outputs.sha != steps.current.outputs.sha && steps.proposed.outputs.skip != 'true'
+        shell: bash
+        run: |
+          OLD="${{ steps.current.outputs.sha }}"
+          NEW="${{ steps.latest.outputs.sha }}"
+          TITLE="chore(deps): bump Kotatsu Parsers Redo ${OLD} → ${NEW}"
+          BODY="This update was detected automatically from Kotatsu-Redo/kotatsu-parsers-redo.\n\n- Waited for the matching JitPack artifact.\n- Ran Kujaku's F-Droid Alpha unit tests.\n- Built the F-Droid Alpha APK successfully.\n\nMerge this PR to include the updated manga sources in the next Kujaku release. No changes are pushed directly to main."
+          git push --force origin "$AUTO_BRANCH"
+          EXISTING=$(gh pr list --head "$AUTO_BRANCH" --base main --state open --json number --jq '.[0].number' || true)
+          if [[ -n "$EXISTING" ]]; then
+            gh pr edit "$EXISTING" --title "$TITLE" --body "$BODY"
+            echo "Updated existing parser-update PR #$EXISTING."
+          elif gh pr create --base main --head "$AUTO_BRANCH" --title "$TITLE" --body "$BODY"; then
+            echo "Opened parser-update PR."
+          else
+            echo "::warning::The branch was pushed, but GitHub did not allow this workflow to create a PR."
+            echo "Enable Settings > Actions > General > Workflow permissions > Allow GitHub Actions to create and approve pull requests." >> "$GITHUB_STEP_SUMMARY"
+            echo "Then open: https://github.com/${{ github.repository }}/compare/main...$AUTO_BRANCH?expand=1" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Explain failures
+        if: failure()
+        run: |
+          echo "No parser dependency update was merged or pushed to main." >> "$GITHUB_STEP_SUMMARY"
+          echo "If the build failed, inspect the failing step. The upstream parser change may require an integration fix in Kujaku." >> "$GITHUB_STEP_SUMMARY"
