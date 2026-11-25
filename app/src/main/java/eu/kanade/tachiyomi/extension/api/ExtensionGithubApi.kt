@@ -148,57 +148,65 @@ internal class ExtensionGithubApi {
             }
     }
 
-    suspend fun findMangaExtensions(): List<MangaExtension.Available> {
-        return withIOContext {
-
-            val extensions: ArrayList<MangaExtension.Available> = arrayListOf()
-
-            val repos =
-                PrefManager.getVal<Set<String>>(PrefName.MangaExtensionRepos).toMutableList()
-
-            repos.forEach {
-                val normalized = it.replace("https://github.com/", "https://raw.githubusercontent.com/").replace("/blob/", "/")
-                val repoUrl = if (normalized.endsWith("index.min.json")) {
-                    normalized
+    suspend fun findMangaExtensions(): List<MangaExtension.Available> = withIOContext {
+        val extensions = arrayListOf<MangaExtension.Available>()
+        val repos = PrefManager.getVal<Set<String>>(PrefName.MangaExtensionRepos).toMutableList()
+        repos.forEach { configuredRepo ->
+            val repo = normalizeRepositoryUrl(configuredRepo)
+            val indexUrl = if (repo.endsWith("index.pb") || repo.endsWith("index.min.json")) repo else "${repo.trimEnd('/')}/index.pb"
+            try {
+                val modern = runCatching {
+                    networkService.client.newCall(GET(indexUrl)).awaitSuccess().use { response ->
+                        KeiyoushiIndex.decode(response.body?.bytes() ?: error("Empty index.pb"))
+                    }
+                }.onFailure { Logger.log("Keiyoushi index.pb unavailable: $indexUrl"); Logger.log(it) }.getOrNull()
+                val repoExtensions = if (modern != null) {
+                    modern.mapNotNull { item ->
+                        val libVersion = item.extensionLib.substringBeforeLast('.', item.extensionLib).toDoubleOrNull()
+                            ?: return@mapNotNull null
+                        if (libVersion < ExtensionLoader.MANGA_LIB_VERSION_MIN || libVersion > ExtensionLoader.MANGA_LIB_VERSION_MAX) return@mapNotNull null
+                        val base = indexUrl.removeSuffix("/index.pb").removeSuffix("index.pb").trimEnd('/')
+                        val apkUrl = resolveRepositoryResource(base, item.apkUrl)
+                        val iconUrl = resolveRepositoryResource(base, item.iconUrl)
+                        MangaExtension.Available(
+                            name = item.name.substringAfter("Tachiyomi: ").substringAfter("Mihon: "),
+                            pkgName = item.packageName,
+                            versionName = item.versionName,
+                            versionCode = item.versionCode,
+                            libVersion = libVersion,
+                            lang = item.sources.firstOrNull()?.language ?: "all",
+                            isNsfw = item.contentWarning == 3,
+                            hasReadme = false,
+                            hasChangelog = false,
+                            sources = item.sources.map { source ->
+                                AvailableMangaSources(source.id, source.language, source.name, source.homeUrl)
+                            },
+                            apkName = apkUrl,
+                            repository = indexUrl,
+                            iconUrl = iconUrl,
+                        )
+                    }
                 } else {
-                    "$normalized${if (normalized.endsWith('/')) "" else "/"}index.min.json"
+                    val legacyUrl = if (repo.endsWith("index.min.json")) repo else "${repo.trimEnd('/')}/index.min.json"
+                    networkService.client.newCall(GET(legacyUrl)).awaitSuccess().use { response ->
+                        with(json) { response.parseAs<List<ExtensionJsonObject>>().toMangaExtensions(legacyUrl) }
+                    }
                 }
-                try {
-                    val githubResponse = try {
-                        networkService.client
-                            .newCall(GET(repoUrl))
-                            .awaitSuccess()
-                    } catch (e: Throwable) {
-                        Logger.log("Failed to get repo: $repoUrl")
-                        Logger.log(e)
-                        null
-                    }
-
-                    val response = githubResponse ?: run {
-                        networkService.client
-                            .newCall(GET(fallbackRepoUrl(it) + "/index.min.json"))
-                            .awaitSuccess()
-                    }
-
-                    val repoExtensions = with(json) {
-                        response
-                            .parseAs<List<ExtensionJsonObject>>()
-                            .toMangaExtensions(it)
-                    }
-
-                    extensions.addAll(repoExtensions)
-                } catch (e: Throwable) {
-                    Logger.log("Failed to get extensions from GitHub")
-                    Logger.log(e)
-                }
+                extensions.addAll(repoExtensions)
+            } catch (e: Throwable) {
+                Logger.log("Failed to get manga extensions from repository: $configuredRepo")
+                Logger.log(e)
             }
-
-            extensions
         }
+        extensions
     }
 
     fun getMangaApkUrl(extension: MangaExtension.Available): String {
-        return "${extension.repository.removeSuffix("index.min.json")}/apk/${extension.apkName}"
+        return if (extension.apkName.startsWith("http://") || extension.apkName.startsWith("https://")) {
+            extension.apkName
+        } else {
+            "${extension.repository.removeSuffix("index.pb").removeSuffix("index.min.json").trimEnd('/')}/apk/${extension.apkName}"
+        }
     }
 
     suspend fun findNovelExtensions(): List<NovelExtension.Available> {
@@ -286,6 +294,14 @@ internal class ExtensionGithubApi {
 
     fun getNovelApkUrl(extension: NovelExtension.Available): String {
         return "${extension.repository.removeSuffix("index.min.json")}/apk/${extension.pkgName}.apk"
+    }
+
+    private fun normalizeRepositoryUrl(url: String): String = url.replace("https://github.com/", "https://raw.githubusercontent.com/").replace("/blob/", "/")
+
+    private fun resolveRepositoryResource(base: String, resource: String): String = when {
+        resource.startsWith("https://") || resource.startsWith("http://") -> resource
+        resource.startsWith("/") -> base.substringBefore("://") + "://" + base.substringAfter("://").substringBefore("/") + resource
+        else -> "$base/${resource.removePrefix("./").removePrefix("/")}"
     }
 
     private fun fallbackRepoUrl(repoUrl: String): String? {
