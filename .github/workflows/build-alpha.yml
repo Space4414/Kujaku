@@ -67,8 +67,16 @@ jobs:
             echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD_SECRET"
             echo "KEY_ALIAS=$KEY_ALIAS_SECRET"
             echo "KEY_PASSWORD=$KEY_PASSWORD_SECRET"
-            echo "VERSION_NAME=3.2.${GITHUB_RUN_NUMBER}"
-            echo "VERSION_CODE=$(($(date +%s) / 60 + 1000000000))"
+          BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
+          MAJOR=3
+          MINOR=$((2 + BUILD_NUMBER / 10))
+          PATCH=$((BUILD_NUMBER % 10))
+          MAJOR=$((MAJOR + MINOR / 10))
+          MINOR=$((MINOR % 10))
+          VERSION_CORE="$MAJOR.$MINOR.$PATCH"
+          echo "VERSION_NAME=$VERSION_CORE - Alpha" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=alpha-v$VERSION_CORE" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$(($(date +%s) / 60 + 1000000000))" >> "$GITHUB_ENV"
           } >> "$GITHUB_ENV"
 
       - name: Make Gradle wrapper executable
@@ -83,14 +91,16 @@ jobs:
         run: |
           git tag -f alpha-latest "$GITHUB_SHA"
           git push origin refs/tags/alpha-latest --force
+          git tag "$RELEASE_TAG" "$GITHUB_SHA"
+          git push origin "refs/tags/$RELEASE_TAG"
 
       - name: Publish Alpha GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: alpha-latest
-          name: "Kujaku Alpha ${{ env.VERSION_NAME }} (Build #${{ github.run_number }})"
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: "Kujaku ${{ env.VERSION_NAME }}"
           body: |
-            ## 🦚 Kujaku Alpha ${{ env.VERSION_NAME }}
+            ## 🦚 Kujaku ${{ env.VERSION_NAME }}
 
             Automatically built from the latest `main` commit.
 
