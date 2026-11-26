@@ -162,7 +162,7 @@ internal class ExtensionGithubApi {
                 }.onFailure { Logger.log("Keiyoushi index.pb unavailable: $indexUrl"); Logger.log(it) }.getOrNull()
                 val repoExtensions = if (modern != null) {
                     modern.mapNotNull { item ->
-                        val libVersion = item.extensionLib.substringBeforeLast('.', item.extensionLib).toDoubleOrNull()
+                        val libVersion = item.extensionLib.split('.').take(2).joinToString(".").toDoubleOrNull()
                             ?: return@mapNotNull null
                         if (libVersion < ExtensionLoader.MANGA_LIB_VERSION_MIN || libVersion > ExtensionLoader.MANGA_LIB_VERSION_MAX) return@mapNotNull null
                         val base = indexUrl.removeSuffix("/index.pb").removeSuffix("index.pb").trimEnd('/')
