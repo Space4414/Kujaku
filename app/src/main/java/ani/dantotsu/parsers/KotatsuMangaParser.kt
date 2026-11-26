@@ -55,6 +55,10 @@ class KotatsuMangaParser(private val kotatsuSource: MangaParserSource) : MangaPa
         }
     } catch (cancelled: CancellationException) {
         throw cancelled
+    } catch (error: KotatsuVerificationComplete) {
+        // Retry is handled by the caller on the next user request.
+        Logger.log(error)
+        emptyList()
     } catch (error: Exception) {
         Logger.log(error)
         emptyList()
