@@ -1,5 +1,8 @@
 package eu.kanade.tachiyomi.extension.api
 
+import java.io.ByteArrayInputStream
+import java.util.zip.GZIPInputStream
+
 internal data class KeiyoushiExtension(
     val name: String,
     val packageName: String,
@@ -21,7 +24,12 @@ internal data class KeiyoushiSource(
 
 internal object KeiyoushiIndex {
     fun decode(bytes: ByteArray): List<KeiyoushiExtension> {
-        val index = ProtoReader(bytes)
+        val payload = if (bytes.size >= 2 && bytes[0] == 0x1f.toByte() && bytes[1] == 0x8b.toByte()) {
+            GZIPInputStream(ByteArrayInputStream(bytes)).use { it.readBytes() }
+        } else {
+            bytes
+        }
+        val index = ProtoReader(payload)
         var listBytes: ByteArray? = null
         var externalList: String? = null
         while (index.hasNext()) {
