@@ -49,11 +49,11 @@ class KotatsuMangaParser(private val kotatsuSource: MangaParserSource) : MangaPa
         ?: "Multiple"
 
     override suspend fun search(query: String): List<ShowResponse> = try {
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.IO) { retryVerification {
             val order = kotatsuParser.availableSortOrders.first()
             kotatsuParser.getList(0, order, MangaListFilter(query = query)).map(::toShowResponse)
         }
-    } catch (cancelled: CancellationException) {
+    } } catch (cancelled: CancellationException) {
         throw cancelled
     } catch (error: KotatsuVerificationComplete) {
         // Retry is handled by the caller on the next user request.
@@ -69,12 +69,12 @@ class KotatsuMangaParser(private val kotatsuSource: MangaParserSource) : MangaPa
         extra: Map<String, String>?,
         sManga: SManga,
     ): List<MangaChapter> = try {
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.IO) { retryVerification {
             val details = kotatsuParser.getDetails(toKotatsuManga(mangaLink, extra, sManga))
             updateSManga(sManga, details)
             details.chapters.orEmpty().map(::toKujakuChapter)
         }
-    } catch (cancelled: CancellationException) {
+    } } catch (cancelled: CancellationException) {
         throw cancelled
     } catch (error: Exception) {
         Logger.log(error)
@@ -82,7 +82,7 @@ class KotatsuMangaParser(private val kotatsuSource: MangaParserSource) : MangaPa
     }
 
     override suspend fun loadImages(chapterLink: String, sChapter: SChapter): List<MangaImage> = try {
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.IO) { retryVerification {
             val headers = kotatsuParser.getRequestHeaders()
             kotatsuParser.getPages(sChapter.toKotatsuChapter()).mapIndexed { index, page ->
                 val imageUrl = kotatsuParser.getPageUrl(page)
@@ -106,7 +106,7 @@ class KotatsuMangaParser(private val kotatsuSource: MangaParserSource) : MangaPa
                 )
             }
         }
-    } catch (cancelled: CancellationException) {
+    } } catch (cancelled: CancellationException) {
         throw cancelled
     } catch (error: Exception) {
         Logger.log(error)
@@ -114,7 +114,7 @@ class KotatsuMangaParser(private val kotatsuSource: MangaParserSource) : MangaPa
     }
 
     override suspend fun imageList(sChapter: SChapter): List<ImageData> = try {
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.IO) { retryVerification {
             val headers = kotatsuParser.getRequestHeaders()
             kotatsuParser.getPages(sChapter.toKotatsuChapter()).mapIndexed { index, page ->
                 val imageUrl = kotatsuParser.getPageUrl(page)
@@ -126,11 +126,19 @@ class KotatsuMangaParser(private val kotatsuSource: MangaParserSource) : MangaPa
                 )
             }
         }
-    } catch (cancelled: CancellationException) {
+    } } catch (cancelled: CancellationException) {
         throw cancelled
     } catch (error: Exception) {
         Logger.log(error)
         emptyList()
+    }
+
+    private suspend fun <T> retryVerification(block: suspend () -> T): T {
+        return try {
+            block()
+        } catch (_: KotatsuVerificationComplete) {
+            block()
+        }
     }
 
     private fun toShowResponse(manga: KotatsuManga): ShowResponse {
