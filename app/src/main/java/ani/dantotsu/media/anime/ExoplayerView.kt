@@ -1461,15 +1461,14 @@ class ExoplayerView :
                         RPC.Companion.RPCData(
                             applicationId = Discord.application_Id,
                             type = RPC.Type.WATCHING,
-                            activityName = media.userPreferredName,
-                            details =
-                                ep.title?.takeIf { it.isNotEmpty() } ?: getString(
-                                    R.string.episode_num,
-                                    ep.number,
-                                ),
+                            activityName = Discord.appLabel,
+                            details = media.userPreferredName,
                             startTimestamp = startTimestamp.timeInMillis,
                             stopTimestamp = endTimestamp.timeInMillis,
-                            state = "Episode : ${ep.number}/${media.anime?.totalEpisodes ?: "??"}",
+                            state = (ep.title?.takeIf { it.isNotEmpty() } ?: getString(
+                                R.string.episode_num,
+                                ep.number,
+                            )) + " · ${ep.number}/${media.anime?.totalEpisodes ?: "??"}",
                             largeImage =
                                 media.cover?.let {
                                     RPC.Link(
@@ -1477,7 +1476,6 @@ class ExoplayerView :
                                         it,
                                     )
                                 },
-                            smallImage = RPC.Link("Dantotsu", Discord.small_Image),
                             buttons = buttons,
                         ),
                     )
