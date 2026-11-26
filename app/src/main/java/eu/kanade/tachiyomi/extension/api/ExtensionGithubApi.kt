@@ -160,7 +160,7 @@ internal class ExtensionGithubApi {
                         KeiyoushiIndex.decode(response.body?.bytes() ?: error("Empty index.pb"))
                     }
                 }.onFailure { Logger.log("Keiyoushi index.pb unavailable: $indexUrl"); Logger.log(it) }.getOrNull()
-                val repoExtensions = if (modern != null) {
+                val repoExtensions = if (!modern.isNullOrEmpty()) {
                     modern.mapNotNull { item ->
                         val libVersion = item.extensionLib.split('.').take(2).joinToString(".").toDoubleOrNull()
                             ?: return@mapNotNull null
