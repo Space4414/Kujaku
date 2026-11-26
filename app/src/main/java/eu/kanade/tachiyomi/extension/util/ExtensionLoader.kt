@@ -272,7 +272,7 @@ internal object ExtensionLoader {
                         else -> throw Exception("Unknown source class type! ${obj.javaClass}")
                     }
                 } catch (e: Throwable) {
-                    Logger.log("Extension load error: $extName ($it)")
+                    Logger.log("Extension load error: $extName ($it): ${e.stackTraceToString()}")
                     return AnimeLoadResult.Error
                 }
             }
