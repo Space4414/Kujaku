@@ -51,7 +51,19 @@ class KotatsuMangaLoaderContext(context: Context) : MangaLoaderContext() {
     private val appContext = context.applicationContext
     private val networkHelper = Injekt.get<NetworkHelper>()
 
-    override val httpClient = networkHelper.client
+    override val httpClient = networkHelper.client.newBuilder()
+        .addInterceptor { chain ->
+            val response = chain.proceed(chain.request())
+            val challenge = response.header("cf-mitigated") == "challenge" ||
+                ((response.code == 403 || response.code == 503) &&
+                    response.peekBody(65536).string().let {
+                        it.contains("challenge-platform", true) ||
+                            it.contains("Just a moment", true)
+                    })
+            if (!challenge) return@addInterceptor response
+            response.close()
+            verifyInBrowser(chain.request().url.toString())
+        }.build()
     override val cookieJar: CookieJar = networkHelper.cookieJar
 
     override fun getConfig(source: MangaSource): MangaSourceConfig =
@@ -255,7 +267,9 @@ class KotatsuMangaLoaderContext(context: Context) : MangaLoaderContext() {
         }
     }
 
-    override fun requestBrowserAction(parser: KotatsuParser, url: String): Nothing {
+    override fun requestBrowserAction(parser: KotatsuParser, url: String): Nothing = verifyInBrowser(url)
+
+    private fun verifyInBrowser(url: String): Nothing {
         check(Looper.myLooper() != Looper.getMainLooper()) {
             "Browser verification cannot block the main thread"
         }
