@@ -14,26 +14,23 @@ import io.noties.markwon.SoftBreakAddsNewLinePlugin
 import java.io.File
 
 object Discord {
-
     var token: String? = null
     var userid: String? = null
     var avatar: String? = null
 
-
     fun getSavedToken(): Boolean {
-        token = PrefManager.getVal(
-            PrefName.DiscordToken, null as String?
-        )
+        token = PrefManager.getVal(PrefName.DiscordToken, null as String?)
         return token != null
     }
 
     fun saveToken(token: String) {
+        this.token = token
         PrefManager.setVal(PrefName.DiscordToken, token)
     }
 
     fun removeSavedToken(context: Context) {
+        token = null
         PrefManager.removeVal(PrefName.DiscordToken)
-
         tryWith(true) {
             val dir = File(context.filesDir?.parentFile, "app_webview")
             if (dir.deleteRecursively())
@@ -43,7 +40,6 @@ object Discord {
 
     private var rpc: RPC? = null
 
-
     fun warning(context: Context) = CustomBottomDialog().apply {
         title = context.getString(R.string.warning)
         val md = context.getString(R.string.discord_warning)
@@ -52,11 +48,9 @@ object Discord {
                 Markwon.builder(context).usePlugin(SoftBreakAddsNewLinePlugin.create()).build()
             markWon.setMarkdown(this, md)
         })
-
         setNegativeButton(context.getString(R.string.cancel)) {
             dismiss()
         }
-
         setPositiveButton(context.getString(R.string.login)) {
             dismiss()
             loginIntent(context)
