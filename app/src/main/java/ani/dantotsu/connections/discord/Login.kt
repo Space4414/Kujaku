@@ -2,9 +2,11 @@ package ani.dantotsu.connections.discord
 
 import android.annotation.SuppressLint
 import android.app.Application.getProcessName
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
-import android.webkit.WebResourceRequest
+import android.os.Handler
+import android.os.Looper
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
@@ -15,68 +17,95 @@ import ani.dantotsu.startMainActivity
 import ani.dantotsu.themes.ThemeManager
 
 class Login : AppCompatActivity() {
-
+    private val handler = Handler(Looper.getMainLooper())
+    private var webView: WebView? = null
+    private var done = false
+    private var polls = 0
+    private val poller = object : Runnable {
+        override fun run() {
+            if (done || isFinishing || isDestroyed) return
+            webView?.let { checkToken(it) }
+            if (++polls < MAX_POLLS) handler.postDelayed(this, POLL_INTERVAL_MS)
+        }
+    }
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         ThemeManager(this).applyTheme()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             val process = getProcessName()
             if (packageName != process) WebView.setDataDirectorySuffix(process)
         }
         setContentView(R.layout.activity_discord)
-
-        val webView = findViewById<WebView>(R.id.discordWebview)
-
-        webView.apply {
-            settings.javaScriptEnabled = true
-            settings.databaseEnabled = true
-            settings.domStorageEnabled = true
+        val wv = findViewById<WebView>(R.id.discordWebview)
+        webView = wv
+        wv.settings.apply {
+            javaScriptEnabled = true
+            databaseEnabled = true
+            domStorageEnabled = true
+            userAgentString = USER_AGENT
         }
-        WebView.setWebContentsDebuggingEnabled(true)
-        webView.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(
-                view: WebView?,
-                request: WebResourceRequest?
-            ): Boolean {
-                // Check if the URL is the one expected after a successful login
-                if (request?.url.toString() != "https://discord.com/login") {
-                    // Delay the script execution to ensure the page is fully loaded
-                    view?.postDelayed({
-                        view.evaluateJavascript(
-                            """
-                    (function() {
-                        const wreq = (webpackChunkdiscord_app.push([[''],{},e=>{m=[];for(let c in e.c)m.push(e.c[c])}]),m).find(m=>m?.exports?.default?.getToken!==void 0).exports.default.getToken();
-                        return wreq;
-                    })()
-                """.trimIndent()
-                        ) { result ->
-                            login(result.trim('"'))
-                        }
-                    }, 2000)
-                }
-                return super.shouldOverrideUrlLoading(view, request)
+        wv.webViewClient = object : WebViewClient() {
+            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                view?.let { checkToken(it) }
             }
-
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
+                view?.let { checkToken(it) }
             }
         }
-
-        webView.loadUrl("https://discord.com/login")
+        wv.loadUrl("https://discord.com/login")
+        handler.postDelayed(poller, POLL_INTERVAL_MS)
     }
-
-    private fun login(token: String) {
-        if (token.isEmpty() || token == "null") {
-            Toast.makeText(this, "Failed to retrieve token", Toast.LENGTH_SHORT).show()
-            finish()
-            return
+    private fun checkToken(view: WebView) {
+        if (done) return
+        view.evaluateJavascript(TOKEN_JS) { result ->
+            if (done) return@evaluateJavascript
+            val token = result?.replace("\\\"", "")?.trim('"')
+                ?.takeUnless { it.isBlank() || it == "null" || it == "undefined" }
+            if (token != null) login(token)
         }
+    }
+    private fun login(token: String) {
+        if (done) return
+        done = true
+        handler.removeCallbacks(poller)
+        saveToken(token)
         Toast.makeText(this, "Logged in successfully", Toast.LENGTH_SHORT).show()
         finish()
-        saveToken(token)
         startMainActivity(this@Login)
     }
-
+    override fun onDestroy() {
+        handler.removeCallbacks(poller)
+        webView?.apply {
+            stopLoading()
+            webViewClient = WebViewClient()
+            destroy()
+        }
+        webView = null
+        super.onDestroy()
+    }
+    private companion object {
+        const val POLL_INTERVAL_MS = 1500L
+        const val MAX_POLLS = 400
+        const val USER_AGENT =
+            "Mozilla/5.0 (Linux; Android 14; SM-S921U) AppleWebKit/537.36 " +
+                    "(KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36"
+        val TOKEN_JS = """
+            (function() {
+                try {
+                    var t = window.localStorage.getItem('token');
+                    if (!t) {
+                        var f = document.createElement('iframe');
+                        f.style.display = 'none';
+                        document.body.appendChild(f);
+                        t = f.contentWindow.localStorage.getItem('token');
+                        document.body.removeChild(f);
+                    }
+                    return t ? String(t).replace(/^"|"$/g, '') : null;
+                } catch (e) { return null; }
+            })()
+        """.trimIndent()
+    }
 }
