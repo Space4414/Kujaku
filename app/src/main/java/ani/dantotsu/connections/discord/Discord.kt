@@ -3,6 +3,7 @@ package ani.dantotsu.connections.discord
 import android.content.Context
 import android.content.Intent
 import android.widget.TextView
+import ani.dantotsu.BuildConfig
 import ani.dantotsu.R
 import ani.dantotsu.others.CustomBottomDialog
 import ani.dantotsu.settings.saving.PrefManager
@@ -14,16 +15,29 @@ import io.noties.markwon.SoftBreakAddsNewLinePlugin
 import java.io.File
 
 object Discord {
+
     var token: String? = null
     var userid: String? = null
     var avatar: String? = null
 
+    /** Name shown after "Watching" on the Discord profile, depending on the build type. */
+    val appLabel: String
+        get() = when (BuildConfig.BUILD_TYPE) {
+            "alpha" -> "Kujaku alpha"
+            "debug" -> "Kujaku beta"
+            else -> "Kujaku"
+        }
+
+
     fun getSavedToken(): Boolean {
-        token = PrefManager.getVal(PrefName.DiscordToken, null as String?)
+        token = PrefManager.getVal(
+            PrefName.DiscordToken, null as String?
+        )
         return token != null
     }
 
     fun saveToken(token: String) {
+        // keep the in-memory copy in sync, otherwise RPC stays disabled until app restart
         this.token = token
         PrefManager.setVal(PrefName.DiscordToken, token)
     }
@@ -31,6 +45,7 @@ object Discord {
     fun removeSavedToken(context: Context) {
         token = null
         PrefManager.removeVal(PrefName.DiscordToken)
+
         tryWith(true) {
             val dir = File(context.filesDir?.parentFile, "app_webview")
             if (dir.deleteRecursively())
@@ -40,6 +55,7 @@ object Discord {
 
     private var rpc: RPC? = null
 
+
     fun warning(context: Context) = CustomBottomDialog().apply {
         title = context.getString(R.string.warning)
         val md = context.getString(R.string.discord_warning)
@@ -48,9 +64,11 @@ object Discord {
                 Markwon.builder(context).usePlugin(SoftBreakAddsNewLinePlugin.create()).build()
             markWon.setMarkdown(this, md)
         })
+
         setNegativeButton(context.getString(R.string.cancel)) {
             dismiss()
         }
+
         setPositiveButton(context.getString(R.string.login)) {
             dismiss()
             loginIntent(context)

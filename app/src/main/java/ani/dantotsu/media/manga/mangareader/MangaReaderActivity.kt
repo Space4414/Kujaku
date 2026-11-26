@@ -441,10 +441,11 @@ class MangaReaderActivity : AppCompatActivity() {
                             RPC.Companion.RPCData(
                                 applicationId = Discord.application_Id,
                                 type = RPC.Type.WATCHING,
-                                activityName = media.userPreferredName,
-                                details = chap.title?.takeIf { it.isNotEmpty() }
-                                    ?: getString(R.string.chapter_num, chap.number),
-                                state = "${chap.number}/${media.manga?.totalChapters ?: "??"}",
+                                activityName = Discord.appLabel,
+                                details = media.userPreferredName,
+                                state = (chap.title?.takeIf { it.isNotEmpty() }
+                                    ?: getString(R.string.chapter_num, chap.number)) +
+                                        " · ${chap.number}/${media.manga?.totalChapters ?: "??"}",
                                 largeImage = media.cover?.let { cover ->
                                     RPC.Link(
                                         media.userPreferredName,
