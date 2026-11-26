@@ -2,6 +2,8 @@ package ani.dantotsu.parsers
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.webkit.CookieManager
 import android.graphics.Bitmap as AndroidBitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -40,6 +42,9 @@ import kotlin.io.use
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 /** Bridges Kotatsu parsers to Kujaku's shared networking, preferences and Android bitmap APIs. */
 class KotatsuMangaLoaderContext(context: Context) : MangaLoaderContext() {
@@ -250,10 +255,31 @@ class KotatsuMangaLoaderContext(context: Context) : MangaLoaderContext() {
         }
     }
 
-    override fun requestBrowserAction(parser: KotatsuParser, url: String): Nothing =
-        throw UnsupportedOperationException(
-            "Kotatsu parser " + parser.source.name + " requires a browser action for " + url,
-        )
+    override fun requestBrowserAction(parser: KotatsuParser, url: String): Nothing {
+        check(Looper.myLooper() != Looper.getMainLooper()) {
+            "Browser verification cannot block the main thread"
+        }
+        val latch = CountDownLatch(1)
+        val verified = AtomicReference(false)
+        KotatsuVerificationActivity.pending.set { success ->
+            verified.set(success)
+            latch.countDown()
+        }
+        try {
+            appContext.startActivity(
+                Intent(appContext, KotatsuVerificationActivity::class.java)
+                    .putExtra("url", url)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+            if (!latch.await(120, TimeUnit.SECONDS) || !verified.get()) {
+                throw IllegalStateException("Kotatsu verification cancelled or timed out")
+            }
+            // The upstream contract is Nothing. Retry must occur at the caller.
+            throw KotatsuVerificationComplete()
+        } finally {
+            KotatsuVerificationActivity.pending.set(null)
+        }
+    }
 
     override fun redrawImageResponse(
         response: Response,

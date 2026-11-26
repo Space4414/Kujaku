@@ -74,6 +74,7 @@
         android:usesCleartextTraffic="true"
         tools:ignore="AllowBackup"
         tools:targetApi="tiramisu">
+        <activity android:name=".parsers.KotatsuVerificationActivity" android:exported="false" />
 
         <receiver
             android:name=".widgets.upcoming.UpcomingWidget"
