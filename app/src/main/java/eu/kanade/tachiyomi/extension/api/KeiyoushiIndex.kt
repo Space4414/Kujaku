@@ -41,8 +41,8 @@ internal object KeiyoushiIndex {
             }
         }
         check(externalList == null) { "This index.pb points to an external extension list" }
-        val payload = requireNotNull(listBytes) { "index.pb has no embedded extension list" }
-        val list = ProtoReader(payload)
+        val listPayload = requireNotNull(listBytes) { "index.pb has no embedded extension list" }
+        val list = ProtoReader(listPayload)
         val result = mutableListOf<KeiyoushiExtension>()
         while (list.hasNext()) {
             val tag = list.readVarint().toInt()
