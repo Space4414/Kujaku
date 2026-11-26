@@ -54,7 +54,7 @@ class RepoItem(
     private fun String.cleanShownUrl(): String {
         return this
             .removePrefix("https://raw.githubusercontent.com/")
-            .replace("index.min.json", "")
+            .removeSuffix("index.min.json").removeSuffix("index.pb")
             .removeSuffix("/")
     }
 }
@@ -139,8 +139,8 @@ class AddRepositoryBottomSheet : BottomSheetDialogFragment() {
 
     private fun isValidUrl(input: String): String? {
         if (input.startsWith("http://") || input.startsWith("https://")) {
-            if (!input.removeSuffix("/").endsWith("index.min.json")) {
-                return "URL must end with index.min.json"
+            if (listOf("index.min.json", "index.pb").none { input.removeSuffix("/").endsWith(it) }) {
+                return "URL must end with index.min.json or index.pb"
             }
             return null
         }
