@@ -7,6 +7,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Button
 import android.widget.LinearLayout
+import ani.dantotsu.defaultHeaders
 import java.util.concurrent.atomic.AtomicReference
 import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -26,6 +27,7 @@ class KotatsuVerificationActivity : Activity() {
             return
         }
         val web = WebView(this)
+        web.settings.userAgentString = defaultHeaders["User-Agent"] ?: web.settings.userAgentString
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
         web.webViewClient = WebViewClient()
@@ -37,7 +39,10 @@ class KotatsuVerificationActivity : Activity() {
                 val target = url.toHttpUrl()
                 val cookies = manager.getCookie(url).orEmpty().split(";")
                     .mapNotNull { Cookie.parse(target, it.trim()) }
-                if (cookies.isEmpty()) return@setOnClickListener
+                if (cookies.none { it.name == "cf_clearance" }) {
+                    text = "Complete Cloudflare verification first"
+                    return@setOnClickListener
+                }
                 Injekt.get<NetworkHelper>().cookieJar.saveFromResponse(target, cookies)
                 completed = true
                 finish()
