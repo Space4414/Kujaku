@@ -304,78 +304,22 @@ class MangaReadAdapter(
                 mangaScanlatorContainer.isVisible = options.count() > 1
                 scanlatorNo.text = "${options.count()}"
                 mangaScanlatorTop.setOnClickListener {
-                    CustomDialogLayoutBinding.inflate(fragment.layoutInflater)
-                    val dialogView = CustomDialogLayoutBinding.inflate(fragment.layoutInflater)
-                    val checkboxContainer = dialogView.checkboxContainer
-                    val tickAllButton = dialogView.toggleButton
-
-                    fun getToggleImageResource(container: ViewGroup): Int {
-                        var allChecked = true
-                        var allUnchecked = true
-
-                        for (i in 0 until container.childCount) {
-                            val checkBox = container.getChildAt(i) as CheckBox
-                            if (!checkBox.isChecked) {
-                                allChecked = false
-                            } else {
-                                allUnchecked = false
-                            }
-                        }
-                        return when {
-                            allChecked -> R.drawable.untick_all_boxes
-                            allUnchecked -> R.drawable.tick_all_boxes
-                            else -> R.drawable.invert_all_boxes
-                        }
-                    }
-
-                    options.forEach { option ->
-                        val checkBox = CheckBox(currContext()).apply {
-                            text = option
-                            setOnCheckedChangeListener { _, _ ->
-                                tickAllButton.setImageResource(
-                                    getToggleImageResource(
-                                        checkboxContainer
-                                    )
-                                )
-                            }
-                        }
-
-                        if (media.selected!!.scanlators != null) {
-                            checkBox.isChecked =
-                                media.selected!!.scanlators?.contains(option) != true
-                            scanlatorSelectionListener?.onScanlatorsSelected()
-                        } else {
-                            checkBox.isChecked = true
-                        }
-                        checkboxContainer.addView(checkBox)
-                    }
-
-                    fragment.requireContext().customAlertDialog().apply {
-                        setCustomView(dialogView.root)
-                        setPosButton("OK") {
+                    val choices = listOf("All") + options
+                    val selected = choices.indexOfFirst {
+                        it != "All" && it !in hiddenScanlators
+                    }.coerceAtLeast(0)
+                    androidx.appcompat.app.AlertDialog.Builder(fragment.requireContext())
+                        .setTitle("Translation source")
+                        .setSingleChoiceItems(choices.toTypedArray(), selected) { dialog, which ->
                             hiddenScanlators.clear()
-                            for (i in 0 until checkboxContainer.childCount) {
-                                val checkBox = checkboxContainer.getChildAt(i) as CheckBox
-                                if (!checkBox.isChecked) {
-                                    hiddenScanlators.add(checkBox.text.toString())
-                                }
+                            if (which > 0) {
+                                hiddenScanlators.addAll(options.filter { it != choices[which] })
                             }
                             fragment.onScanlatorChange(hiddenScanlators)
                             scanlatorSelectionListener?.onScanlatorsSelected()
+                            dialog.dismiss()
                         }
-                        setNegButton("Cancel")
-                    }.show()
-
-                    tickAllButton.setImageResource(getToggleImageResource(checkboxContainer))
-
-                    tickAllButton.setOnClickListener {
-                        for (i in 0 until checkboxContainer.childCount) {
-                            val checkBox = checkboxContainer.getChildAt(i) as CheckBox
-                            checkBox.isChecked = !checkBox.isChecked
-                        }
-                        tickAllButton.setImageResource(getToggleImageResource(checkboxContainer))
-                    }
-                }
+                        .show()
 
                 fragment.requireContext().customAlertDialog().apply {
                     setTitle("Options")
