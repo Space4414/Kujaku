@@ -2,6 +2,7 @@ package ani.dantotsu.parsers.kotatsu
 
 import android.app.Activity
 import android.text.InputType
+import android.util.TypedValue
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.EditText
@@ -17,13 +18,19 @@ object KotatsuSourcePicker {
         val selected = KotatsuSources.enabledNames().toMutableSet()
         var shown = KotatsuSources.all
 
-        val search = EditText(activity).apply {
+        val dialog = AlertDialog.Builder(activity)
+        val themed = dialog.context
+        val search = EditText(themed).apply {
             hint = activity.getString(R.string.kotatsu_search_hint)
             inputType = InputType.TYPE_CLASS_TEXT
             setSingleLine()
         }
-        val listView = ListView(activity).apply {
+        val listView = ListView(themed).apply {
             choiceMode = ListView.CHOICE_MODE_MULTIPLE
+            val color = TypedValue()
+            if (themed.theme.resolveAttribute(android.R.attr.colorBackground, color, true)) {
+                setBackgroundColor(color.data)
+            }
         }
 
         fun render() {
@@ -34,7 +41,7 @@ object KotatsuSourcePicker {
                     source.locale.lowercase() == query
             }
             listView.adapter = ArrayAdapter(
-                activity,
+                themed,
                 android.R.layout.simple_list_item_multiple_choice,
                 shown.map { "${it.title}  (${it.locale.ifBlank { "multi" }})" },
             )
@@ -52,7 +59,7 @@ object KotatsuSourcePicker {
         render()
 
         val padding = (16 * activity.resources.displayMetrics.density).toInt()
-        val content = LinearLayout(activity).apply {
+        val content = LinearLayout(themed).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(padding, padding / 2, padding, 0)
             addView(search, LinearLayout.LayoutParams(
@@ -65,7 +72,7 @@ object KotatsuSourcePicker {
             ))
         }
 
-        AlertDialog.Builder(activity)
+        dialog
             .setTitle(R.string.kotatsu_sources)
             .setView(content)
             .setPositiveButton(android.R.string.ok) { _, _ ->
