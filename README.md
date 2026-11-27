@@ -1,7 +1,7 @@
 # 🦚 Kujaku
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Space4414/Kujaku/main/app/src/main/res/drawable-nodpi/kujaku_logo.webp" width="150" alt="Kujaku peacock logo"/>
+  <img src="https://raw.githubusercontent.com/Space4414/Kujaku/main/app/src/main/res/drawable-nodpi/kujaku_logo.png" width="150" alt="Kujaku peacock logo"/>
 </p>
 
 <p align="center">
@@ -33,7 +33,7 @@
 
 **Kujaku** is an open-source Android app for tracking and reading anime and manga. It's built on top of [Dantotsu](https://github.com/rebelonion/Dantotsu), syncs with your AniList account, and comes with manga sources already built in, so you can start reading without hunting for extensions.
 
-It's a personal project that I decided to share with the community, so expect an app that's made with care but still growing.
+It's a personal project that I decided to share with the community, so expect an app that's made with care but still growing. This is another **vibe-coded** project of mine so nothing is guaranteed but I'll try.
 
 ## Why I made it
 
@@ -99,6 +99,10 @@ The first **stable release hasn't been published yet**. When it is, it will be a
 - **[GitHub Actions](https://github.com/Space4414/Kujaku/actions)**: development builds and workflow artifacts.
 
 Development builds are for testing and may contain bugs or unfinished features. Always check the workflow result and artifact details before installing one.
+
+## Also check out this : 
+[Tsuki](https://github.com/TsukiAndroid/Tsuki),
+It's another manga reading app of mine that was based on Yukimi and Futon.
 
 ## Build from source
 
