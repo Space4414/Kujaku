@@ -321,6 +321,8 @@ class MangaReadAdapter(
                         }
                         .show()
 
+                }
+
                 fragment.requireContext().customAlertDialog().apply {
                     setTitle("Options")
                     setCustomView(root)
