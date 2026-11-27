@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-  <strong>An open-source Android app for anime and manga.</strong><br/>
-  <sub>Built on Dantotsu, with its own identity and an evolving manga-reading experience.</sub>
+  <strong>A smooth, good-looking Android app for anime and manga, with sources built right in.</strong><br/>
+  <sub>Built on Dantotsu, made for people who don't want to install extensions (and for older Android phones too).</sub>
 </p>
 
 <p align="center">
@@ -29,37 +29,76 @@
 
 ---
 
-## About
+## What is Kujaku?
 
-**Kujaku** is an independent, open-source Android project based on [Dantotsu](https://github.com/rebelonion/Dantotsu). It brings anime tracking and manga reading together, with support for external sources and integrations.
+**Kujaku** is an open-source Android app for tracking and reading anime and manga. It's built on top of [Dantotsu](https://github.com/rebelonion/Dantotsu), syncs with your AniList account, and comes with manga sources already built in, so you can start reading without hunting for extensions.
 
-Kujaku is actively evolving. It is not a finished or perfectly stable product, and compatibility with third-party sources can change over time. The aim here is to be transparent about what the project is and where its content comes from.
+It's a personal project that I decided to share with the community, so expect an app that's made with care but still growing.
+
+## Why I made it
+
+A few reasons, honestly:
+
+- **The UI.** The main reason I built Kujaku is how it looks and feels. I wanted a smooth, clean experience, and Dantotsu's foundation gave me a great base to build that on.
+- **Older Android phones.** Keiyoushi extensions stopped supporting Android 7 and now need Android 8+. I use a legacy Android device myself, and I didn't want to be locked out of reading manga just because my phone is old. Kujaku supports Android 5.0 and up. You can use the in-app sources to Android 5+ phones too not just Android 7+ devices.
+- **No extension hassle.** I never liked installing extensions. Kujaku comes with [Kotatsu Parsers Redo](https://github.com/clquwu/kotatsu-parsers-redo) built in as a source, so you don't have to install anything extra to find manga.
+
+## Why "Kujaku"?
+
+Kujaku (孔雀) means *peacock* in Japanese. I saw a video of Malfoid casting a Patronus charm, and it turned out to be a peacock. I loved that idea so much that I decided to name an app after it. 🦚
 
 ## Features
 
-- 📚 Manga reading through supported external sources.
-- 📺 Anime tracking and related integrations.
-- 🔌 Support for extensions and external integrations.
-- 🔖 AniList account integration.
-- 👤 MyAnimeList and Discord integrations.
-- ⬇️ Downloads for supported media.
-- 🎨 Themes and appearance customization.
-- ⚙️ Reader, playback, and application settings.
+- ✨ **Smooth, polished UI** that's easy on the eyes.
+- 📚 **Built-in manga sources** through Kotatsu Parsers Redo. No extensions needed, and the sources keep getting updates as the upstream project updates.
+- 🔌 **Extension support** for people who still want to use them (see [Known issues](#known-issues--roadmap)).
+- 🔖 **AniList integration** to track what you read and watch.
+- 👤 **MyAnimeList** and **Discord Rich Presence** support. Your Discord profile shows what you're reading as *Watching Kujaku*.
+- ⬇️ **Downloads** for supported media.
+- 🎨 **Themes and appearance customization.**
+- ⚙️ **Reader, playback, and app settings** to set things up your way.
+- 📱 **Works on Android 5.0 and up**, including older phones.
 
-Feature availability may depend on external services, extensions, and device compatibility.
+Feature availability may depend on external services, sources, and your device.
+
+## Screenshots
+
+<!-- Add your screenshots here. Example layout:
+
+<p align="center">
+  <img src="screenshots/home.png" width="22%" alt="Home"/>
+  <img src="screenshots/reader.png" width="22%" alt="Reader"/>
+  <img src="screenshots/details.png" width="22%" alt="Details"/>
+  <img src="screenshots/settings.png" width="22%" alt="Settings"/>
+</p>
+
+-->
+
+*Screenshots coming soon.*
+
+## Known issues & roadmap
+
+Kujaku is almost ready for its first stable release, but a few things are still not working properly, and I'd rather be upfront about them:
+
+- ❌ **Anime streaming** doesn't work yet.
+- ❌ **Installed manga extensions** can't fetch manga from their sources yet. The built-in Kotatsu Parsers Redo sources are not affected.
+
+**Plan:** I'm fixing manga extensions first, then moving on to anime streaming. If you find other bugs, please [open an issue](https://github.com/Space4414/Kujaku/issues/new).
 
 ## Manga source integration
 
-Kujaku integrates **[Kotatsu Parsers Redo](https://github.com/clquwu/kotatsu-parsers-redo)** as a manga source/parser library. This integration provides the parser layer used to access supported manga websites from within the app.
+Kujaku integrates **[Kotatsu Parsers Redo](https://github.com/clquwu/kotatsu-parsers-redo)** as a built-in manga source. This is the parser layer that lets the app reach supported manga websites without needing any extension installed.
 
-The dependency is currently pinned to a specific upstream revision rather than tracking an unpinned moving branch. Source availability and compatibility remain dependent on the upstream project and the individual websites.
+When Kotatsu Parsers Redo gets updates, Kujaku can pick them up too. Source availability still depends on the upstream project and on the individual websites, so a source can break at any time when a site changes.
 
 ## Get Kujaku
 
-- **[GitHub Actions](https://github.com/Space4414/Kujaku/actions)** — development builds and workflow artifacts.
-- **[GitHub Releases](https://github.com/Space4414/Kujaku/releases)** — published releases, when available.
+The first **stable release hasn't been published yet**. When it is, it will be available on the Releases page.
 
-Development builds are primarily for testing and may contain bugs or incomplete features. Always check the workflow result and artifact details before installing a build.
+- **[GitHub Releases](https://github.com/Space4414/Kujaku/releases)**: stable releases (coming soon).
+- **[GitHub Actions](https://github.com/Space4414/Kujaku/actions)**: development builds and workflow artifacts.
+
+Development builds are for testing and may contain bugs or unfinished features. Always check the workflow result and artifact details before installing one.
 
 ## Build from source
 
@@ -94,17 +133,17 @@ Kujaku is an application, not a content host. It does not host or distribute man
 
 External websites, repositories, extensions, and add-ons are operated by third parties. Kujaku does not control their content, availability, accuracy, or security. Extensions may execute code on your device, so only use sources you trust.
 
-Users are responsible for ensuring that their use of the application and any third-party sources complies with applicable laws and service terms.
+Users are responsible for making sure their use of the app and any third-party sources follows applicable laws and service terms.
 
 ## Contributing
 
-Contributions, bug reports, documentation improvements, and thoughtful suggestions are welcome.
+Bug reports, ideas, documentation fixes, and pull requests are all welcome.
 
 - [Report a bug](https://github.com/Space4414/Kujaku/issues/new)
 - [Browse open issues](https://github.com/Space4414/Kujaku/issues)
 - [Browse pull requests](https://github.com/Space4414/Kujaku/pulls)
 
-When reporting a bug, include your Android version, app build/version, the steps to reproduce it, and relevant logs or screenshots when possible.
+When reporting a bug, please include your Android version, the app build/version, the steps to reproduce it, and logs or screenshots if you can.
 
 ## Repository activity
 
@@ -120,12 +159,12 @@ When reporting a bug, include your Android version, app build/version, the steps
 
 ## Credits
 
-Kujaku stands on the work of other open-source developers and projects. Special thanks to:
+Kujaku wouldn't exist without the work of other open-source developers. Big thanks to:
 
-- **[Dantotsu](https://github.com/rebelonion/Dantotsu)** — the original project Kujaku is based on.
-- **[Kotatsu Parsers Redo](https://github.com/clquwu/kotatsu-parsers-redo)** — manga source/parser integration used by Kujaku.
+- **[Dantotsu](https://github.com/rebelonion/Dantotsu)**: the original project Kujaku is based on.
+- **[Kotatsu Parsers Redo](https://github.com/clquwu/kotatsu-parsers-redo)**: the built-in manga source/parser library.
 
-Please visit the respective upstream repositories for their source code, licenses, and contributor information.
+Please visit their repositories for source code, licenses, and contributor information.
 
 ## License
 
