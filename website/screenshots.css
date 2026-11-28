@@ -1,0 +1,83 @@
+/* Kujaku website: screenshot slider
+   Uses the site's theme variables, so it follows Ocean/Saikou automatically. */
+
+.shots{padding-top:20px;padding-bottom:115px}
+.shots-head{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:end;margin:25px 0 34px}
+.shots-head h2{
+  font-family:'Anton',Impact,sans-serif;font-weight:400;
+  font-size:clamp(40px,5.5vw,65px);line-height:1.12;letter-spacing:.005em;margin:0
+}
+.shots-head p{color:var(--muted);font-size:14px;line-height:1.9;max-width:470px;margin:0 0 5px}
+
+.shots-viewport{position:relative;--shot-w:clamp(215px,62vw,275px);--gap:18px}
+.shots-viewport:before,.shots-viewport:after{
+  content:"";position:absolute;top:0;bottom:0;width:min(9%,90px);z-index:2;pointer-events:none
+}
+.shots-viewport:before{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+.shots-viewport:after{right:0;background:linear-gradient(270deg,var(--bg),transparent)}
+
+.shots-track{
+  position:relative;display:flex;align-items:center;gap:var(--gap);
+  overflow-x:auto;overflow-y:hidden;padding:30px 0;margin:0;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
+  scrollbar-width:none;cursor:grab;outline:none
+}
+.shots-track::-webkit-scrollbar{display:none}
+/* spacers so the first and last slide can sit in the centre */
+.shots-track:before,.shots-track:after{
+  content:"";flex:0 0 max(0px,calc(50% - var(--shot-w)/2 - var(--gap)))
+}
+.shots-track.is-dragging{cursor:grabbing;scroll-snap-type:none;user-select:none;-webkit-user-select:none}
+.shots-track:focus-visible{box-shadow:0 0 0 2px var(--a) inset;border-radius:24px}
+
+.shot{
+  flex:0 0 var(--shot-w);aspect-ratio:5/8;margin:0;position:relative;overflow:hidden;
+  scroll-snap-align:center;border-radius:30px;border:1px solid var(--line);background:var(--panel);
+  box-shadow:0 24px 70px rgba(0,0,0,.35);
+  transform:scale(.88);opacity:.5;
+  transition:transform .35s ease,opacity .35s ease,border-color .35s ease
+}
+.shot.is-active{transform:none;opacity:1;border-color:var(--a)}
+.shot img{display:block;width:100%;height:100%;object-fit:cover;-webkit-user-drag:none;user-select:none;pointer-events:none}
+
+/* landscape shots, like the Discord card */
+.shot.wide{flex-basis:min(540px,86vw);aspect-ratio:auto;border-radius:22px}
+.shot.wide img{height:auto}
+
+/* shown if a file path is wrong, so it's easy to spot */
+.shot.is-missing{display:grid;place-items:center;min-height:200px;color:var(--muted);font:10px 'DM Mono',monospace;text-align:center;padding:20px}
+.shot.is-missing img{display:none}
+.shot.is-missing:after{content:"Image not found. Check the file name in screenshots.js"}
+
+.shots-btn{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:3;
+  width:46px;height:46px;border-radius:50%;border:1px solid var(--line);
+  background:var(--panel);color:var(--text);font-size:22px;line-height:1;cursor:pointer;
+  display:grid;place-items:center;padding:0 0 3px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)
+}
+.shots-btn.prev{left:6px}.shots-btn.next{right:6px}
+.shots-btn:disabled{opacity:.28;cursor:default}
+.shots-btn:focus-visible,.shots-dot:focus-visible{outline:2px solid var(--a);outline-offset:3px}
+@media(hover:hover){.shots-btn:not(:disabled):hover{border-color:var(--a);color:var(--a)}}
+
+.shots-dots{display:flex;justify-content:center;gap:8px;margin-top:6px}
+.shots-dot{
+  width:8px;height:8px;border-radius:999px;border:0;padding:0;cursor:pointer;
+  background:var(--line);transition:width .25s ease,background .25s ease
+}
+.shots-dot[aria-current="true"]{width:26px;background:var(--a)}
+.shots-caption{
+  text-align:center;color:var(--muted);font:11px 'DM Mono',monospace;letter-spacing:.08em;
+  margin:16px auto 0;min-height:1.4em
+}
+.shots-caption:empty{display:none}
+
+@media(max-width:700px){
+  .shots{padding-bottom:75px}
+  .shots-head{grid-template-columns:1fr;gap:18px;margin:25px 0 22px}
+  .shots-head h2{font-size:clamp(38px,11vw,52px)}
+  .shots-btn{display:none}
+  .shot{border-radius:26px}
+}
+@media(prefers-reduced-motion:reduce){.shot,.shots-dot{transition:none!important}}
