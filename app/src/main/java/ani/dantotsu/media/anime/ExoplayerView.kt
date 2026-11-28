@@ -1671,9 +1671,11 @@ class ExoplayerView :
             }
 
         val mimeType =
-            when (video?.format) {
-                VideoType.M3U8 -> MimeTypes.APPLICATION_M3U8
-                VideoType.DASH -> MimeTypes.APPLICATION_MPD
+            when {
+                video?.format == VideoType.M3U8 ||
+                    video?.file?.url?.substringBefore("?")?.endsWith(".m3u8", ignoreCase = true) == true ->
+                    MimeTypes.APPLICATION_M3U8
+                video?.format == VideoType.DASH -> MimeTypes.APPLICATION_MPD
                 else -> MimeTypes.APPLICATION_MP4
             }
 
