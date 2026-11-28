@@ -246,7 +246,7 @@ object Anilist {
     )
 
     fun loginIntent(context: Context) {
-        val clientID = 14959
+        val clientID = 58311
         try {
             CustomTabsIntent.Builder().build().launchUrl(
                 context,

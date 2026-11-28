@@ -63,18 +63,25 @@ Feature availability may depend on external services, sources, and your device.
 
 ## Screenshots
 
-<!-- Add your screenshots here. Example layout:
-
 <p align="center">
-  <img src="screenshots/home.png" width="22%" alt="Home"/>
-  <img src="screenshots/reader.png" width="22%" alt="Reader"/>
-  <img src="screenshots/details.png" width="22%" alt="Details"/>
-  <img src="screenshots/settings.png" width="22%" alt="Settings"/>
+  <img src="Screenshots/Screenshot 1.jpg" width="30%" alt="Kujaku screenshot 1"/>
+  <img src="Screenshots/Screenshot 2.png" width="30%" alt="Kujaku screenshot 2"/>
+  <img src="Screenshots/Screenshot 3.png" width="30%" alt="Kujaku screenshot 3"/>
 </p>
 
--->
+<p align="center">
+  <img src="Screenshots/Screenshot 4.jpg" width="30%" alt="Kujaku screenshot 4"/>
+  <img src="Screenshots/Screenshot 5.png" width="30%" alt="Kujaku screenshot 5"/>
+  <img src="Screenshots/Screenshot 6.png" width="30%" alt="Kujaku screenshot 6"/>
+</p>
 
-*Screenshots coming soon.*
+<p align="center">
+  <img src="Screenshots/Screenshot 7.png" width="30%" alt="Kujaku screenshot 7"/>
+  <img src="Screenshots/Screenshot 8.png" width="30%" alt="Kujaku screenshot 8"/>
+  <p align="center">
+  <img src="Screenshots/Screenshot 9.png" width="60%" alt="Kujaku Discord Rich Presence"/>
+</p>
+</p>
 
 ## Known issues & roadmap
 
@@ -82,6 +89,7 @@ Kujaku is almost ready for its first stable release, but a few things are still 
 
 - ❌ **Anime streaming** doesn't work yet.
 - ❌ **Installed manga extensions** can't fetch manga from their sources yet. The built-in Kotatsu Parsers Redo sources are not affected.
+- ⏳ **Novel Reading** coming soon !
 
 **Plan:** I'm fixing manga extensions first, then moving on to anime streaming. If you find other bugs, please [open an issue](https://github.com/Space4414/Kujaku/issues/new).
 
@@ -101,6 +109,9 @@ The first **stable release hasn't been published yet**. When it is, it will be a
 Development builds are for testing and may contain bugs or unfinished features. Always check the workflow result and artifact details before installing one.
 
 ## Also check out this : 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/TsukiAndroid/Tsuki/refs/heads/devel/screenshots/icon.png" width="120" alt="Tsuki Logo"/>
+</p>
 [Tsuki](https://github.com/TsukiAndroid/Tsuki),
 It's another manga reading app of mine that was based on Yukimi and Futon.
 
