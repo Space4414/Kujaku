@@ -78,7 +78,9 @@ Feature availability may depend on external services, sources, and your device.
 <p align="center">
   <img src="Screenshots/Screenshot 7.png" width="30%" alt="Kujaku screenshot 7"/>
   <img src="Screenshots/Screenshot 8.png" width="30%" alt="Kujaku screenshot 8"/>
-  <img src="Screenshots/Screenshot 9.png" width="30%" alt="Kujaku screenshot 9"/>
+  <p align="center">
+  <img src="Screenshots/Screenshot 9.png" width="60%" alt="Kujaku Discord Rich Presence"/>
+</p>
 </p>
 
 ## Known issues & roadmap
@@ -87,6 +89,7 @@ Kujaku is almost ready for its first stable release, but a few things are still 
 
 - ❌ **Anime streaming** doesn't work yet.
 - ❌ **Installed manga extensions** can't fetch manga from their sources yet. The built-in Kotatsu Parsers Redo sources are not affected.
+- ⏳ **Novel Reading** coming soon !
 
 **Plan:** I'm fixing manga extensions first, then moving on to anime streaming. If you find other bugs, please [open an issue](https://github.com/Space4414/Kujaku/issues/new).
 
