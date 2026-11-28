@@ -109,6 +109,9 @@ The first **stable release hasn't been published yet**. When it is, it will be a
 Development builds are for testing and may contain bugs or unfinished features. Always check the workflow result and artifact details before installing one.
 
 ## Also check out this : 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/TsukiAndroid/Tsuki/refs/heads/devel/screenshots/icon.png" width="120" alt="Tsuki Logo"/>
+</p>
 [Tsuki](https://github.com/TsukiAndroid/Tsuki),
 It's another manga reading app of mine that was based on Yukimi and Futon.
 
