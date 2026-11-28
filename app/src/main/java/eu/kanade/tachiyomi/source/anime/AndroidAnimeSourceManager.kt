@@ -83,6 +83,6 @@ class AndroidAnimeSourceManager(
     }
 
     private fun createStubSource(id: Long): StubAnimeSource {
-        return StubAnimeSource(AnimeSourceData(id, "", ""))
+        return StubAnimeSource(extensionManager.getSourceData(id) ?: AnimeSourceData(id, "", ""))
     }
 }
