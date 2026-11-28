@@ -23,8 +23,8 @@ object Discord {
     /** Name shown after "Watching" on the Discord profile, depending on the build type. */
     val appLabel: String
         get() = when (BuildConfig.BUILD_TYPE) {
-            "alpha" -> "Kujaku alpha"
-            "debug" -> "Kujaku beta"
+            "alpha" -> "Kujaku \u03B1"
+            "debug" -> "Kujaku \u03B2"
             else -> "Kujaku"
         }
 
