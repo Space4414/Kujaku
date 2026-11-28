@@ -63,18 +63,23 @@ Feature availability may depend on external services, sources, and your device.
 
 ## Screenshots
 
-<!-- Add your screenshots here. Example layout:
-
 <p align="center">
-  <img src="screenshots/home.png" width="22%" alt="Home"/>
-  <img src="screenshots/reader.png" width="22%" alt="Reader"/>
-  <img src="screenshots/details.png" width="22%" alt="Details"/>
-  <img src="screenshots/settings.png" width="22%" alt="Settings"/>
+  <img src="Screenshots/Screenshot 1.jpg" width="30%" alt="Kujaku screenshot 1"/>
+  <img src="Screenshots/Screenshot 2.png" width="30%" alt="Kujaku screenshot 2"/>
+  <img src="Screenshots/Screenshot 3.png" width="30%" alt="Kujaku screenshot 3"/>
 </p>
 
--->
+<p align="center">
+  <img src="Screenshots/Screenshot 4.jpg" width="30%" alt="Kujaku screenshot 4"/>
+  <img src="Screenshots/Screenshot 5.png" width="30%" alt="Kujaku screenshot 5"/>
+  <img src="Screenshots/Screenshot 6.png" width="30%" alt="Kujaku screenshot 6"/>
+</p>
 
-*Screenshots coming soon.*
+<p align="center">
+  <img src="Screenshots/Screenshot 7.png" width="30%" alt="Kujaku screenshot 7"/>
+  <img src="Screenshots/Screenshot 8.png" width="30%" alt="Kujaku screenshot 8"/>
+  <img src="Screenshots/Screenshot 9.png" width="30%" alt="Kujaku screenshot 9"/>
+</p>
 
 ## Known issues & roadmap
 
