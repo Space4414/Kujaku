@@ -60,7 +60,7 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
     /**
      * Headers used for requests.
      */
-    val headers: Headers by lazy { headersBuilder().build() }
+    val headers: Headers get() = headersBuilder().build()
 
     /**
      * Default network client for doing requests.
