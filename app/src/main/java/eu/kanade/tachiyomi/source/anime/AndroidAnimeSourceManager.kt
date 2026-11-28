@@ -79,7 +79,7 @@ class AndroidAnimeSourceManager(
     }
 
     private fun registerStubSource(sourceData: AnimeSourceData) {
-
+        stubSourcesMap[sourceData.id] = StubAnimeSource(sourceData)
     }
 
     private fun createStubSource(id: Long): StubAnimeSource {
