@@ -112,8 +112,9 @@ Development builds are for testing and may contain bugs or unfinished features. 
 <p align="center">
   <img src="https://raw.githubusercontent.com/TsukiAndroid/Tsuki/refs/heads/devel/screenshots/icon.png" width="120" alt="Tsuki Logo"/>
 </p>
+
 [Tsuki](https://github.com/TsukiAndroid/Tsuki),
-It's another manga reading app of mine that was based on Yukimi and Futon.
+It's another manga reading app of mine that was based on Yukimi and Futon with **UI enhancements** and **Browser Source**.
 
 ## Build from source
 
