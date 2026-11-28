@@ -414,16 +414,14 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
         val headers =
             Headers.Builder().addAll(video.headers ?: headers).add("Range", "bytes=0-1").build()
         val request = GET(video.videoUrl!!, headers)
-        val response = client.newCall(request).execute()
-        // parse the response headers to get the size of the video, in particular the content-range header
-        val contentRange = response.header("Content-Range")
-        if (contentRange != null) {
-            return contentRange.split("/")[1].toLong()
+        client.newCall(request).execute().use { response ->
+            // Servers may omit or return a malformed Content-Range.
+            val size = response.header("Content-Range")
+                ?.substringAfterLast('/')
+                ?.toLongOrNull()
+            if (size != null && size >= 0L) return size
         }
-        if (tries > 0) {
-            return getVideoSize(video, tries - 1)
-        }
-        return -1L
+        return if (tries > 0) getVideoSize(video, tries - 1) else -1L
     }
 
     /**
