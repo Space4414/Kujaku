@@ -618,4 +618,6 @@
     <color name="md_theme_dark_9_scrim">#000000</color>
 
 
+    <color name="splash_bg">#03001C</color>
+
 </resources>
