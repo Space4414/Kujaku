@@ -1671,9 +1671,11 @@ class ExoplayerView :
             }
 
         val mimeType =
-            when (video?.format) {
-                VideoType.M3U8 -> MimeTypes.APPLICATION_M3U8
-                VideoType.DASH -> MimeTypes.APPLICATION_MPD
+            when {
+                video?.format == VideoType.M3U8 ||
+                    video?.file?.url?.substringBefore("?")?.endsWith(".m3u8", ignoreCase = true) == true ->
+                    MimeTypes.APPLICATION_M3U8
+                video?.format == VideoType.DASH -> MimeTypes.APPLICATION_MPD
                 else -> MimeTypes.APPLICATION_MP4
             }
 
@@ -1800,9 +1802,16 @@ class ExoplayerView :
                         DefaultMediaSourceFactory(cacheFactory).createMediaSource(mediaItem)
                     }
                 }.toTypedArray()
+        // Extension stream URLs can contain query parameters or omit a recognizable
+        // suffix. Preserve the extension-provided HLS type when the URL identifies it.
         val videoMediaSource =
-            DefaultMediaSourceFactory(cacheFactory)
-                .createMediaSource(mediaItem)
+            if (mediaItem.localConfiguration?.uri.toString().substringBefore('?')
+                    .endsWith(".m3u8", ignoreCase = true)
+            ) {
+                HlsMediaSource.Factory(cacheFactory).createMediaSource(mediaItem)
+            } else {
+                DefaultMediaSourceFactory(cacheFactory).createMediaSource(mediaItem)
+            }
         mediaSource = MergingMediaSource(videoMediaSource, *audioSources)
 
         // Source

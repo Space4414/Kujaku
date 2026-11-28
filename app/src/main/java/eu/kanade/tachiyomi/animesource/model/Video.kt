@@ -23,6 +23,10 @@ open class Video(
     val audioTracks: List<Track> = emptyList(),
 ) : Serializable, ProgressListener {
 
+    /** Compatibility with extensions compiled against the video title API. */
+    val videoTitle: String
+        get() = quality
+
     @Transient
     var headers: Headers? = headers
 
