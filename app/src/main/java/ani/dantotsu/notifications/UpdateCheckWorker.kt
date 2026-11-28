@@ -42,11 +42,12 @@ class UpdateCheckWorker(context: Context, params: WorkerParameters) :
             val latest = candidates.maxByOrNull { versionParts(versionFromTag(it.tag)).toVersionKey() }
                 ?: return Result.success()
             val version = versionFromTag(latest.tag)
-            if (!isNewer(version, BuildConfig.VERSION_NAME.substringBefore(" -").trim())) {
+            val current = BuildConfig.VERSION_NAME.substringBefore(" -").trim()
+            if (!isNewer(version, current)) {
                 return Result.success()
             }
 
-            val notifiedKey = "update_center_notified_\${BuildConfig.BUILD_TYPE}"
+            val notifiedKey = "update_center_notified_${BuildConfig.BUILD_TYPE}"
             if (PrefManager.getCustomVal(notifiedKey, "") == latest.tag) return Result.success()
             if (!notificationsAllowed()) return Result.success()
 
@@ -59,8 +60,12 @@ class UpdateCheckWorker(context: Context, params: WorkerParameters) :
             val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_round_new_releases_24)
                 .setContentTitle("Kujaku update available")
-                .setContentText(latest.name.ifBlank { "Version $version is ready" })
-                .setStyle(NotificationCompat.BigTextStyle().bigText("\${latest.name}\nTap to view the release and choose whether to download it."))
+                .setContentText("Version $version is available (you have $current)")
+                .setStyle(
+                    NotificationCompat.BigTextStyle().bigText(
+                        "Version $version is available (you have $current).\nTap to view the release and choose whether to download it."
+                    )
+                )
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)

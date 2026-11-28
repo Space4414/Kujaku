@@ -191,52 +191,22 @@ class MainActivity : AppCompatActivity() {
 
         binding.root.isMotionEventSplittingEnabled = false
 
-        lifecycleScope.launch {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                val splash = SplashScreenBinding.inflate(layoutInflater)
-                binding.root.addView(splash.root)
-                splash.splashImage.apply {
-                    alpha = 0f
-                    scaleX = 0.82f
-                    scaleY = 0.82f
-                    animate()
-                        .alpha(1f)
-                        .scaleX(1f)
-                        .scaleY(1f)
-                        .setDuration(700L)
-                        .setInterpolator(android.view.animation.OvershootInterpolator(1.1f))
-                        .start()
-                }
-
-                delay(1200)
-
-                ObjectAnimator.ofFloat(
-                    splash.root,
-                    View.TRANSLATION_Y,
-                    0f,
-                    -splash.root.height.toFloat()
-                ).apply {
-                    interpolator = AnticipateInterpolator()
-                    duration = 200L
-                    doOnEnd { binding.root.removeView(splash.root) }
-                    start()
-                }
-            }
+        // Animated Kujaku splash, shown on every Android version (API 21+).
+        // On Android 12+ the system splash is a plain dark screen (see themes.xml)
+        // that is removed as soon as this overlay is drawn.
+        val splash = SplashScreenBinding.inflate(layoutInflater)
+        binding.root.addView(splash.root)
+        splash.splashLogo.onFinished = {
+            splash.root.animate()
+                .alpha(0f)
+                .setDuration(250L)
+                .withEndAction { binding.root.removeView(splash.root) }
+                .start()
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             splashScreen.setOnExitAnimationListener { splashScreenView ->
-                ObjectAnimator.ofFloat(
-                    splashScreenView,
-                    View.TRANSLATION_Y,
-                    0f,
-                    -splashScreenView.height.toFloat()
-                ).apply {
-                    interpolator = AnticipateInterpolator()
-                    duration = 200L
-                    doOnEnd { splashScreenView.remove() }
-                    start()
-                }
+                splashScreenView.remove()
             }
         }
 

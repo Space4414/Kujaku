@@ -189,7 +189,14 @@ class SettingsActivity : AppCompatActivity() {
             }
 
 
-            settingsLogo.setImageResource(R.drawable.kujaku_logo)
+            // each build type shows its own launcher logo: stable, alpha (α) or beta (β)
+            settingsLogo.setImageResource(
+                when (BuildConfig.BUILD_TYPE) {
+                    "alpha" -> R.mipmap.ic_launcher_alpha
+                    "debug" -> R.mipmap.ic_launcher_beta
+                    else -> R.mipmap.ic_launcher
+                }
+            )
             animateLogo()
             val array = resources.getStringArray(R.array.tips)
 
