@@ -279,7 +279,7 @@
             android:excludeFromRecents="true"
             android:exported="true"
             android:launchMode="singleTask">
-            <intent-filter android:label="Myanimelist Login for Dantotsu">
+            <intent-filter android:label="Myanimelist Login for Kujaku">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
@@ -287,7 +287,7 @@
 
                 <data
                     android:host="mal"
-                    android:scheme="dantotsu" />
+                    android:scheme="kujaku" />
             </intent-filter>
         </activity>
         <activity
